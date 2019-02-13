@@ -17,7 +17,9 @@ public:
 	static void Run(Bone* me, const XMMATRIX *parentWorldMat, vector<XMMATRIX>* worlds) {
 		XMMATRIX boneMat = me->boneMat*(*parentWorldMat);
 		(*worlds)[me->id] = me->offsetMat * boneMat;
-		if (me->firstChild) Run(me->firstChild, &boneMat, worlds);
-		if (me->sibling)	Run(me->sibling, parentWorldMat, worlds);
+		if (me->firstChild) 
+			Run(me->firstChild, &boneMat, worlds);
+		if (me->sibling)	
+			Run(me->sibling, parentWorldMat, worlds);
 	}
 };

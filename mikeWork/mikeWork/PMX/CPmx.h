@@ -16,8 +16,6 @@ using namespace std;
 //構造体
 
 
-#define LayoutCreateConut (5)
-
 enum DrawingType
 {
 	player = 0,
@@ -46,6 +44,7 @@ public:
 	~ObjectIndividualData() { }
 
 	void ReflectionData(ID3D11DeviceContext*, ID3D11Buffer*);//contextに格納
+	void ReflectionData(ID3D11DeviceContext*, ID3D11Buffer*, ID3D11Buffer*);//contextに格納
 };
 
 //Constant Buffer type
@@ -75,6 +74,8 @@ struct CONSTANT_BUFFER_MAINCHARCTER //コンスタンスバッファ
 	XMFLOAT4 specular;
 	XMFLOAT3 light_dir;
 	XMFLOAT3 camera_pos;
+	XMFLOAT4 boneIndex;
+	XMFLOAT4 boneWeight;
 #pragma pack(pop)	
 };
 
@@ -84,6 +85,10 @@ struct CONSTANT_BUFFER {
 	XMFLOAT4X4 Projection;
 };
 
+struct CONSTANT_BONE_MATRIX
+{
+	XMMATRIX boneMatrix[400];
+};
 
 //Rendering Data Struct
 struct DrawingAllDataObject//描画時に必要なデータ
@@ -98,6 +103,7 @@ struct DrawingAllDataMainCharcter//描画時に必要なデータ
 {
 	PMX_DATA pmxdata;//オブジェクトデータ
 	CONSTANT_BUFFER_MAINCHARCTER constantBuffer;//コンスタンスバッファ
+	CONSTANT_BONE_MATRIX constantBoneBuffer;//ボーンに使用
 	ObjectIndividualData IndiviData;
 	vector<ID3D11ShaderResourceView*> Texture;//テクスチャ
 	PMX_SEND_DATA *sendData;
@@ -152,6 +158,7 @@ public:
 
 	CONSTANT_BUFFER_OBJECT cbo;
 	CONSTANT_BUFFER_MAINCHARCTER cbm;
+	CONSTANT_BONE_MATRIX cbmr;
 	CONSTANT_BUFFER cb;
 	//11/9：draw後の処理をRenderに clear ()
 
@@ -218,7 +225,7 @@ private:
 	void PmxLoad(const LPCSTR);//データをロードするのを一括にする
 	void TexLoad(ID3D11Device*, LPSTR);//ロードされたデータを用いてテクスチャの読み込みを行う
 	void Draw(const PMX_DATA, const  CONSTANT_BUFFER_OBJECT, const ObjectIndividualData*);//prepare drawing
-	void Draw(const PMX_DATA, const  CONSTANT_BUFFER_MAINCHARCTER, const ObjectIndividualData*);//prepare drawing
+	void Draw(const PMX_DATA, const  CONSTANT_BUFFER_MAINCHARCTER,const CONSTANT_BONE_MATRIX, const ObjectIndividualData*);//prepare drawing
 	void Draw(const PMX_DATA, const  CONSTANT_BUFFER, const ObjectIndividualData*);//prepare drawing
 		//create buffer
 	void IndexdataForPoint(ID3D11Device* pDevice);//fbxからインデックスに変換する
@@ -231,7 +238,7 @@ private:
 
 
 	PMX_SEND_DATA *VertexBufferUpdate;
-	void updateVerBuf(XMMATRIX*);
+	vector<XMMATRIX> updateVerBuf(XMMATRIX*);
 
 	//CreateBone
 	void CreateBone();

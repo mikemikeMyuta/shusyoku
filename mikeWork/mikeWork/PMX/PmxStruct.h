@@ -295,6 +295,8 @@ namespace PmxStruct {
 		float col[4];//diffuse
 		float col2[4];//specular
 		float uv[2];
+		float boneIndex[4];
+		float boneWeight[4];
 	};
 
 	struct PMX_SEND_DATA_VERTEX//頂点情報用バッファ

@@ -127,12 +127,12 @@ HRESULT Director::Init()
 	//m_pSound->LoadSound("Chorus.wav");
 
 	//init pmx
-	MayuSuki = new CMainchar(DrawingType::player);
-	MayuSuki->Init(m_pD3d->m_pDevice, MAYU2, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)MAYU_PASS);
-	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
-	MayuSuki->setPosition(XMFLOAT3(0, 0, 7));
-	MayuShadow = new CMainchar(DrawingType::shadow);
-	MayuShadow->Init(m_pD3d->m_pDevice, MAYU2, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)MAYU_PASS);
+	//MayuSuki = new CMainchar(DrawingType::player);
+	//MayuSuki->Init(m_pD3d->m_pDevice, MAYU2, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)MAYU_PASS);
+	////コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
+	//MayuSuki->setPosition(XMFLOAT3(0, 0, 7));
+	//MayuShadow = new CMainchar(DrawingType::shadow);
+	//MayuShadow->Init(m_pD3d->m_pDevice, MAYU2, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)MAYU_PASS);
 
 
 	FreChan = new CMainchar(DrawingType::player);
@@ -144,15 +144,15 @@ HRESULT Director::Init()
 	FreChanShadow = new CMainchar(DrawingType::shadow);
 	FreChanShadow->Init(m_pD3d->m_pDevice, FREDERICA, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)FREDERICA_PASS);
 
-	Kanade = new CMainchar(DrawingType::player);
-	Kanade->Init(m_pD3d->m_pDevice, KANADE, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)KANADE_PASS);
+	//Kanade = new CMainchar(DrawingType::player);
+	//Kanade->Init(m_pD3d->m_pDevice, KANADE, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)KANADE_PASS);
 
 
-	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
-	Kanade->setPosition(XMFLOAT3(-10, 0, 0));
+	////コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
+	//Kanade->setPosition(XMFLOAT3(-10, 0, 0));
 
-	KanadeShadow = new CMainchar(DrawingType::shadow);
-	KanadeShadow->Init(m_pD3d->m_pDevice, KANADE, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)KANADE_PASS);
+	//KanadeShadow = new CMainchar(DrawingType::shadow);
+	//KanadeShadow->Init(m_pD3d->m_pDevice, KANADE, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)KANADE_PASS);
 
 
 

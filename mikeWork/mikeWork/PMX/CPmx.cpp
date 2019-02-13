@@ -54,13 +54,22 @@ void CPmx::Render(ID3D11DeviceContext *context)
 		//11/15アンビエント ok
 		context->Unmap(itr.IndiviData.Buffer, 0);
 
+
+		//ボーン
+		hr = context->Map(itr.IndiviData.BoneBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
+		if (hr == S_OK)
+			memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&itr.constantBoneBuffer), sizeof(itr.constantBoneBuffer));
+		//11/15アンビエント ok
+		context->Unmap(itr.IndiviData.BoneBuffer, 0);
+
+
 		hr = context->Map(itr.IndiviData.pVerBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
 		if (hr == S_OK)
 			memcpy_s(pdata.pData, pdata.RowPitch, (void*)(itr.sendData), sizeof(PMX_SEND_DATA)*itr.pmxdata.s_PmxVertexNum);
 		//11/15アンビエント ok
 		context->Unmap(itr.IndiviData.Buffer, 0);
 
-		itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer);
+		itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer, itr.IndiviData.BoneBuffer);
 		for (int i = 0; i < itr.pmxdata.s_PmxMaterialNum; i++)
 		{
 			if (itr.pmxdata.s_pPmxMaterial[i].TextureIndex >= 0) {
@@ -119,11 +128,12 @@ void CPmx::Draw(const PMX_DATA data, const CONSTANT_BUFFER_OBJECT cbo, const Obj
 	RenderingDataObject.push_back(DrawingData);//pushBack
 }
 
-void CPmx::Draw(const PMX_DATA data, const CONSTANT_BUFFER_MAINCHARCTER cbo, const ObjectIndividualData *IndiviData)
+void CPmx::Draw(const PMX_DATA data, const CONSTANT_BUFFER_MAINCHARCTER cbo, const CONSTANT_BONE_MATRIX cbm, const ObjectIndividualData *IndiviData)
 {
 	DrawingAllDataMainCharcter DrawingData; //格納用の変数
 	DrawingData.pmxdata = data;//PMXデータを格納
 	DrawingData.constantBuffer = cbo;
+	DrawingData.constantBoneBuffer = cbm;
 	DrawingData.IndiviData = *IndiviData;
 	DrawingData.Texture = TexData;
 	DrawingData.sendData = VertexBufferUpdate;
@@ -220,6 +230,16 @@ void CPmx::IndexdataForVertex(ID3D11Device* pDevice)
 		VertexBuffer[i].col2[1] = 1; 	//G
 		VertexBuffer[i].col2[2] = 1; 	//B
 		VertexBuffer[i].col2[3] = 1;	//A
+
+		VertexBuffer[i].boneIndex[0] = m_pmx_data.s_pPmxVertex[i].BoneIndex[0];
+		VertexBuffer[i].boneIndex[1] = m_pmx_data.s_pPmxVertex[i].BoneIndex[1];
+		VertexBuffer[i].boneIndex[2] = m_pmx_data.s_pPmxVertex[i].BoneIndex[2];
+		VertexBuffer[i].boneIndex[3] = m_pmx_data.s_pPmxVertex[i].BoneIndex[3];
+
+		VertexBuffer[i].boneWeight[0] = m_pmx_data.s_pPmxVertex[i].BoneWeight[0];
+		VertexBuffer[i].boneWeight[1] = m_pmx_data.s_pPmxVertex[i].BoneWeight[1];
+		VertexBuffer[i].boneWeight[2] = m_pmx_data.s_pPmxVertex[i].BoneWeight[2];
+		VertexBuffer[i].boneWeight[3] = m_pmx_data.s_pPmxVertex[i].BoneWeight[3];
 	}
 
 	bd_vertex.ByteWidth = sizeof(PMX_SEND_DATA) * m_pmx_data.s_PmxVertexNum;
@@ -319,7 +339,12 @@ void CPmx::Cretaelayout(ID3D11Device* Device)
 		{ "COLORR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLORRR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "BONEINDEX",		 0,		 DXGI_FORMAT_R32G32B32A32_FLOAT,   0,	 D3D11_APPEND_ALIGNED_ELEMENT,		D3D11_INPUT_PER_VERTEX_DATA, 0 },	// ボーン行列インデクッス
+		{ "BONEWEIGHT",		 0,		 DXGI_FORMAT_R32G32B32A32_FLOAT,   0,	  D3D11_APPEND_ALIGNED_ELEMENT,	D3D11_INPUT_PER_VERTEX_DATA, 0 },	// ボーンウェイト
 	};
+
+	unsigned int LayoutCreateConut = ARRAYSIZE(layout);//レイアウトサイズ取得
+
 	hr = Device->CreateInputLayout(layout, LayoutCreateConut
 		, pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), &IndiviData->pVertexLayout);
 	if (FAILED(hr))
@@ -417,8 +442,27 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 	switch (type)
 	{
 	case player:
+
 		cb.ByteWidth = sizeof(CONSTANT_BUFFER_MAINCHARCTER) + 8;//16の倍数になるように調整
 		cb.StructureByteStride = sizeof(CONSTANT_BUFFER_MAINCHARCTER) + 8;
+
+		D3D11_BUFFER_DESC cbBone;
+		ZeroMemory(&cbBone, sizeof(cbBone));
+		cbBone.ByteWidth = sizeof(CONSTANT_BONE_MATRIX);
+		cbBone.StructureByteStride = sizeof(CONSTANT_BONE_MATRIX);
+		cbBone.Usage = D3D11_USAGE_DYNAMIC;
+		cbBone.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbBone.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbBone.MiscFlags = 0;
+
+		if (device->CreateBuffer(&cbBone, NULL, &IndiviData->BoneBuffer))
+		{
+			MessageBox(0, "Bufferが作成されませんでした。おそらく16の倍数ではないかと思われます", NULL, MB_OK);
+			return;
+		}
+		else {
+			OutputDebugString("\CreateBuffer成功\n");
+		}
 		break;
 	case object:
 		cb.ByteWidth = sizeof(CONSTANT_BUFFER_OBJECT) + 8;
@@ -506,6 +550,7 @@ void CPmx::ProcessingCalc()
 	XMMATRIX rotemat;//回転用行列
 	XMMATRIX keepMat;//逆行列を格納
 	XMVECTOR useInverse;
+	vector<XMMATRIX> data;//ボーン行列を持っている
 	//rotetation 
 	rotemat = XMMatrixRotationY(XMConvertToRadians(Rotetation.y));
 	//Rotetation = XMFLOAT3(0, 0, 0);
@@ -525,7 +570,7 @@ void CPmx::ProcessingCalc()
 	case player:
 
 		workmat = rotemat * objectPos * workmat;
-		updateVerBuf(&workmat);
+		data = updateVerBuf(&workmat);
 		keepMat = XMMatrixInverse(&useInverse, workmat);
 
 
@@ -540,7 +585,13 @@ void CPmx::ProcessingCalc()
 		XMStoreFloat4(&cbm.specular, XMLoadFloat4((const XMFLOAT4*)&specular.data));
 		XMStoreFloat3(&cbm.light_dir, XMLoadFloat3((const XMFLOAT3*)&light_dir));
 		XMStoreFloat3(&cbm.camera_pos, XMLoadFloat3((const XMFLOAT3*)&camerapos));
-		Draw(m_pmx_data, cbm, IndiviData);//insert data
+		XMStoreFloat4(&cbm.boneIndex, XMLoadFloat4((const XMFLOAT4*)&m_pmx_data.s_pPmxVertex->BoneIndex));
+		XMStoreFloat4(&cbm.boneWeight, XMLoadFloat4((const XMFLOAT4*)&m_pmx_data.s_pPmxVertex->BoneWeight));
+
+		for (int i = 0; i < data.size(); i++) {
+			cbmr.boneMatrix[i] = XMMatrixTranspose(data[i]);
+		}
+		Draw(m_pmx_data, cbm, cbmr, IndiviData);//insert data
 
 		//OutputDebugString("\n SetPlayerData\n");
 
@@ -693,7 +744,7 @@ void CPmx::TexLoad(ID3D11Device* device, LPSTR TexPass)
 	TextureNamePASSW = NULL;
 }
 
-void CPmx::updateVerBuf(XMMATRIX *world)
+vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 {
 	D3D11_BUFFER_DESC bd_vertex;
 	ZeroMemory(&bd_vertex, sizeof(bd_vertex));
@@ -709,11 +760,16 @@ void CPmx::updateVerBuf(XMMATRIX *world)
 	WorldsCalc::Run(&bones[0], world, &worlds);//これforいるくね？　いらないみたい
 	vector<XMMATRIX> work(bones.size());
 
+
 	for (int i = 0; i < bones.size(); i++)
 	{
 		XMMATRIX workmatInv;
 		workmatInv = XMMatrixInverse(0, bones[i].offsetMat);//いらないやつをさくじょするやつ
 		work[i] = worlds[i] * workmatInv;//これを用いる
+		if (bones[i].type == 7)//非表示のため
+		{
+			work[i] *= 0;
+		}
 	}
 
 
@@ -722,49 +778,15 @@ void CPmx::updateVerBuf(XMMATRIX *world)
 	for (int i = 0; i < m_pmx_data.s_PmxVertexNum; i++)
 	{
 
-		//ここをもう少し考える
-		//うまい感じにマトリックスの座標をもってくる
-		XMMATRIX matwork;
+		////ここをもう少し考える
+		////うまい感じにマトリックスの座標をもってくる
+		//XMMATRIX matwork;
 
-		//12/13 計算をマトリックスでしてから座標算出でやってみる
+		////12/13 計算をマトリックスでしてから座標算出でやってみる
 
-
-
-		//if (m_pmx_data.s_pPmxVertex[i].BoneIndex[1] > -1)
-		//{
-		//	XMFLOAT4X4 workmat4x4;
-		//	{
-		//		XMMATRIX matVerPos;
-		//		XMFLOAT4X4 matFloat4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, m_pmx_data.s_pPmxVertex[i].Position[0], m_pmx_data.s_pPmxVertex[i].Position[1], m_pmx_data.s_pPmxVertex[i].Position[2], 1);
-		//		matVerPos = XMLoadFloat4x4(&matFloat4x4);
-		//		matwork = matVerPos * work[m_pmx_data.s_pPmxVertex[i].BoneIndex[1]] * work[m_pmx_data.s_pPmxVertex[i].BoneIndex[0]];//行列計算
-		//		XMStoreFloat4x4(&workmat4x4, matwork);//変換
-		//	}
-		//	VertexBufferUpdate[i].pos[0] = workmat4x4._41;
-		//	VertexBufferUpdate[i].pos[1] = workmat4x4._42;
-		//	VertexBufferUpdate[i].pos[2] = workmat4x4._43;
-		//}
-		//else
-		{
-			XMFLOAT4X4 workmat4x4;
-
-			{
-				XMMATRIX matVerPos = XMMatrixIdentity();
-				XMFLOAT4X4 matFloat4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, m_pmx_data.s_pPmxVertex[i].Position[0], m_pmx_data.s_pPmxVertex[i].Position[1], m_pmx_data.s_pPmxVertex[i].Position[2], 1);
-				matVerPos = XMLoadFloat4x4(&matFloat4x4);
-				matwork = matVerPos * work[(unsigned short)m_pmx_data.s_pPmxVertex[i].BoneIndex[0]];//行列計算
-
-			}
-
-			XMStoreFloat4x4(&workmat4x4, matwork);//変換
-
-
-			VertexBufferUpdate[i].pos[0] = workmat4x4._41;
-			VertexBufferUpdate[i].pos[1] = workmat4x4._42;
-			VertexBufferUpdate[i].pos[2] = workmat4x4._43;
-
-		}
-
+		VertexBufferUpdate[i].pos[0] = m_pmx_data.s_pPmxVertex[i].Position[0];
+		VertexBufferUpdate[i].pos[1] = m_pmx_data.s_pPmxVertex[i].Position[1];
+		VertexBufferUpdate[i].pos[2] = m_pmx_data.s_pPmxVertex[i].Position[2];
 
 		VertexBufferUpdate[i].normal[0] = m_pmx_data.s_pPmxVertex[i].Normal[0];
 		VertexBufferUpdate[i].normal[1] = m_pmx_data.s_pPmxVertex[i].Normal[1];
@@ -788,6 +810,20 @@ void CPmx::updateVerBuf(XMMATRIX *world)
 		VertexBufferUpdate[i].col2[1] = m_pmx_data.s_pPmxMaterial[j].Specular[1]; 	//G
 		VertexBufferUpdate[i].col2[2] = m_pmx_data.s_pPmxMaterial[j].Specular[2]; 	//B
 		VertexBufferUpdate[i].col2[3] = m_pmx_data.s_pPmxMaterial[j].Specular[3];	//A
+
+
+		//ボーンインデックス
+		VertexBufferUpdate[i].boneIndex[0] = m_pmx_data.s_pPmxVertex[i].BoneIndex[0];
+		VertexBufferUpdate[i].boneIndex[1] = m_pmx_data.s_pPmxVertex[i].BoneIndex[1];
+		VertexBufferUpdate[i].boneIndex[2] = m_pmx_data.s_pPmxVertex[i].BoneIndex[2];
+		VertexBufferUpdate[i].boneIndex[3] = m_pmx_data.s_pPmxVertex[i].BoneIndex[3];
+
+		VertexBufferUpdate[i].boneWeight[0] = m_pmx_data.s_pPmxVertex[i].BoneWeight[0];
+		VertexBufferUpdate[i].boneWeight[1] = m_pmx_data.s_pPmxVertex[i].BoneWeight[1];
+		VertexBufferUpdate[i].boneWeight[2] = m_pmx_data.s_pPmxVertex[i].BoneWeight[2];
+		VertexBufferUpdate[i].boneWeight[3] = m_pmx_data.s_pPmxVertex[i].BoneWeight[3];
+
+
 	}
 
 
@@ -859,6 +895,8 @@ void CPmx::updateVerBuf(XMMATRIX *world)
 
 
 	}
+
+	return work;
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -877,4 +915,22 @@ void ObjectIndividualData::ReflectionData(ID3D11DeviceContext* context, ID3D11Bu
 	context->PSSetConstantBuffers(0, 1, &constantBuffer);
 	context->RSSetState(pRasterizerState);
 }
+
+void ObjectIndividualData::ReflectionData(ID3D11DeviceContext* context, ID3D11Buffer* constantBuffer, ID3D11Buffer* constantBoneBuffer)//データ格納
+{
+
+	UINT stride = sizeof(PMX_SEND_DATA);	//座標に使用するサイズ XMFloat*3 
+																	//posX,posY,posZに準ずる
+	UINT offset = 0;
+	context->IASetVertexBuffers(0, 1, &pVerBuffer, &stride, &offset);
+	context->IASetIndexBuffer(pIndBuffer, DXGI_FORMAT_R16_UINT, 0);
+	context->IASetInputLayout(pVertexLayout);
+	context->VSSetShader(pVertexShader, NULL, 0);
+	context->PSSetShader(pPixelShader, NULL, 0);
+	context->VSSetConstantBuffers(0, 1, &constantBuffer);
+	context->VSSetConstantBuffers(1, 1, &constantBoneBuffer);
+	context->PSSetConstantBuffers(0, 1, &constantBuffer);
+	context->RSSetState(pRasterizerState);
+}
+
 

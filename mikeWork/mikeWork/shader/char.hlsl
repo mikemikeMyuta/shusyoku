@@ -18,6 +18,11 @@ cbuffer  global: register(b0) {
 	float3 camera_pos;
 };
 
+cbuffer BoneMatrix:register(b1)
+{
+	matrix BoneMatrix[400];//四百個のボーンしか使えない
+}
+
 //
 struct VS_IN
 {
@@ -26,6 +31,8 @@ struct VS_IN
 	float4 col : COLORR;
 	float4 col_specular : COLORRR;
 	float2 Tex : TEXCOORD;
+	float4 BoneIndex : BONEINDEX;
+	float4 BoneWeight : BONEWEIGHT;
 };
 
 struct VS_OUT
@@ -42,9 +49,20 @@ VS_OUT vs_main(VS_IN input)
 {
 	VS_OUT output;//返還用構造体変数
 
+	//頂点ブレンド
+
+	float4x4 comb = (float4x4)0;
+	for (int i = 0; i < 4; i++)
+	{
+		if (input.BoneIndex[i] != -1 && input.BoneWeight[i] > 0) {
+			comb += BoneMatrix[input.BoneIndex[i]] * input.BoneWeight[i];
+		}
+	}
 
 	//座標変換
-	output.pos = mul(input.pos, World);
+	output.pos = mul(input.pos, comb);
+
+	output.pos = mul(output.pos, World);
 	output.pospass = output.pos.xyz;
 	output.pos = mul(output.pos, View);
 	output.pos = mul(output.pos, Projection);
@@ -66,6 +84,7 @@ struct PS_IN
 	float4 col : COLORR;
 	float4 col_specular : COLORRR;
 	float2 Tex : TEXCOORD;
+
 };
 
 struct PS_OUT

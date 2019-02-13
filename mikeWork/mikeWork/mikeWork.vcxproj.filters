@@ -153,12 +153,4 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="shader\charcink.hlsl" />
-    <FxCompile Include="shader\char.hlsl" />
-    <FxCompile Include="shader\koin.hlsl" />
-    <FxCompile Include="shader\MachiShader.hlsl" />
-    <FxCompile Include="shader\SkydomeShader.hlsl" />
-    <FxCompile Include="shader\texShader.hlsl" />
-  </ItemGroup>
 </Project>
