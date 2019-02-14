@@ -45,7 +45,7 @@ void Director::Run(HINSTANCE hInstance)
 		}
 		else
 		{
-			m_pD3d->m_pDeviceContext->PSSetSamplers(0, 1, &SampleLinear);
+		
 			MainLoop();
 		}
 	}
@@ -53,6 +53,7 @@ void Director::Run(HINSTANCE hInstance)
 
 void Director::RenderRoom()
 {
+	m_pD3d->m_pDeviceContext->PSSetSamplers(0, 1, &SampleLinear);
 	CPmx::Render(m_pD3d->m_pDeviceContext);
 }
 

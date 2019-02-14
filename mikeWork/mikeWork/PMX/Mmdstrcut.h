@@ -70,7 +70,7 @@ namespace MmdStruct {
 	};
 
 	/// ƒXƒP[ƒ‹•ÏŠ·’è”
-	const float scale = 0.1f;
+	const float scale = 0.6f;
 
 #pragma pack(pop)
 }

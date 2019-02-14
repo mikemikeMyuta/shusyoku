@@ -574,7 +574,7 @@ void CPmx::ProcessingCalc()
 		//この下消すと追従カメラに
 		//Camera::m_mView = Camera::m_mView*keepMat;
 
-		
+
 
 		XMStoreFloat4x4(&cbm.World, XMMatrixTranspose(workmat));
 		XMStoreFloat4x4(&cbm.View, XMMatrixTranspose(Camera::m_mView));
@@ -755,14 +755,8 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 
 	vector<XMMATRIX> worlds(bones.size());
 	WorldsCalc::Run(&bones[0], world, &worlds);//これforいるくね？　いらないみたい
-	vector<XMMATRIX> work(bones.size());
 
-	for (unsigned int i = 0; i < bones.size(); ++i) {
-		XMMATRIX offsetCanceller;
-		offsetCanceller = XMMatrixInverse(0, bones[i].offsetMat);
-		work[i] = offsetCanceller * worlds[i];
-	}
-	
+
 	for (int i = 0; i < m_pmx_data.s_PmxVertexNum; i++)
 	{
 
@@ -771,10 +765,12 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 		//XMMATRIX matwork;
 
 		////12/13 計算をマトリックスでしてから座標算出でやってみる
+		//fixed 頂点ブレンドでやってます。最終的にはこれ消したいですね
 
-		VertexBufferUpdate[i].pos[0] = m_pmx_data.s_pPmxVertex[i].Position[0];
-		VertexBufferUpdate[i].pos[1] = m_pmx_data.s_pPmxVertex[i].Position[1];
-		VertexBufferUpdate[i].pos[2] = m_pmx_data.s_pPmxVertex[i].Position[2];
+
+		VertexBufferUpdate[i].pos[0] = MmdStruct::scale*m_pmx_data.s_pPmxVertex[i].Position[0];
+		VertexBufferUpdate[i].pos[1] = MmdStruct::scale*m_pmx_data.s_pPmxVertex[i].Position[1];
+		VertexBufferUpdate[i].pos[2] = MmdStruct::scale*m_pmx_data.s_pPmxVertex[i].Position[2];
 
 		VertexBufferUpdate[i].normal[0] = m_pmx_data.s_pPmxVertex[i].Normal[0];
 		VertexBufferUpdate[i].normal[1] = m_pmx_data.s_pPmxVertex[i].Normal[1];
@@ -823,12 +819,12 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 	if (timeMorph > 1 && !MorphEyeOpen)
 	{
 		MorphEyeOpen = true;
-		timedif = -0.1;
+		timedif = -0.01;
 	}
 	else if (timeMorph <= 0 && MorphEyeOpen)
 	{
 		MorphEyeOpen = false;
-		timedif = +0.1;
+		timedif = +0.01;
 	}
 	timeMorph += timedif;
 
@@ -884,7 +880,7 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 
 	}
 
-	return work;
+	return worlds;
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------------------

@@ -56,7 +56,6 @@ VS_OUT vs_main(VS_IN input)
 	{
 		comb += BoneMatrix[input.BoneIndex[i]] * input.BoneWeight[i];
 	}
-	//	comb *= 0.01f;
 	//À•W•ÏŠ·
 	output.pos = mul(float4(input.pos,1), comb);
 

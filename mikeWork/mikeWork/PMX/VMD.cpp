@@ -237,7 +237,7 @@ void VmdMotionController::UpdateIK(const MmdStruct::PmdIkData& ikData) {
 
 			XMVECTOR axis;
 			axis=XMVector3Cross(localEffectorDirVec, localTargetDirVec);
-
+		
 			XMMATRIX rotation;
 			rotation=XMMatrixRotationAxis(axis, angle);
 
