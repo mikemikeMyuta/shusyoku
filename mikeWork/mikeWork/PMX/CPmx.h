@@ -74,8 +74,6 @@ struct CONSTANT_BUFFER_MAINCHARCTER //コンスタンスバッファ
 	XMFLOAT4 specular;
 	XMFLOAT3 light_dir;
 	XMFLOAT3 camera_pos;
-	XMFLOAT4 boneIndex;
-	XMFLOAT4 boneWeight;
 #pragma pack(pop)	
 };
 

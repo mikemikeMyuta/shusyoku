@@ -26,7 +26,7 @@ cbuffer BoneMatrix:register(b1)
 //
 struct VS_IN
 {
-	float4 pos : POSITION;
+	float3 pos : POSITION;
 	float3 normal : NORMAL;
 	float4 col : COLORR;
 	float4 col_specular : COLORRR;
@@ -47,20 +47,18 @@ struct VS_OUT
 // 頂点シェーダ
 VS_OUT vs_main(VS_IN input)
 {
-	VS_OUT output;//返還用構造体変数
+	VS_OUT output = (VS_OUT)0;//返還用構造体変数
 
 	//頂点ブレンド
 
 	float4x4 comb = (float4x4)0;
 	for (int i = 0; i < 4; i++)
 	{
-		if (input.BoneIndex[i] != -1 && input.BoneWeight[i] > 0) {
-			comb += BoneMatrix[input.BoneIndex[i]] * input.BoneWeight[i];
-		}
+		comb += BoneMatrix[input.BoneIndex[i]] * input.BoneWeight[i];
 	}
-
+	//	comb *= 0.01f;
 	//座標変換
-	output.pos = mul(input.pos, comb);
+	output.pos = mul(float4(input.pos,1), comb);
 
 	output.pos = mul(output.pos, World);
 	output.pospass = output.pos.xyz;
@@ -75,24 +73,13 @@ VS_OUT vs_main(VS_IN input)
 
 }
 
-// ピクセルシェーダ
-struct PS_IN
-{
-	float4 pos : POSITION;
-	float3 pospass : POSITIONPASS;
-	float3 normal : NORMAL;
-	float4 col : COLORR;
-	float4 col_specular : COLORRR;
-	float2 Tex : TEXCOORD;
-
-};
 
 struct PS_OUT
 {
 	float4 col : SV_Target;
 };
 
-PS_OUT ps_main(PS_IN input)
+PS_OUT ps_main(VS_OUT input)
 {
 	PS_OUT output;
 

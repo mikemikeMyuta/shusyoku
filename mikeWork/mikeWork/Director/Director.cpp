@@ -45,6 +45,7 @@ void Director::Run(HINSTANCE hInstance)
 		}
 		else
 		{
+			m_pD3d->m_pDeviceContext->PSSetSamplers(0, 1, &SampleLinear);
 			MainLoop();
 		}
 	}

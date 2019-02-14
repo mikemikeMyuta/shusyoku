@@ -67,7 +67,7 @@ void CPmx::Render(ID3D11DeviceContext *context)
 		if (hr == S_OK)
 			memcpy_s(pdata.pData, pdata.RowPitch, (void*)(itr.sendData), sizeof(PMX_SEND_DATA)*itr.pmxdata.s_PmxVertexNum);
 		//11/15アンビエント ok
-		context->Unmap(itr.IndiviData.Buffer, 0);
+		context->Unmap(itr.IndiviData.pVerBuffer, 0);
 
 		itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer, itr.IndiviData.BoneBuffer);
 		for (int i = 0; i < itr.pmxdata.s_PmxMaterialNum; i++)
@@ -76,20 +76,17 @@ void CPmx::Render(ID3D11DeviceContext *context)
 				if (itr.pmxdata.s_pPmxMaterial[i].ToonTextureIndex >= 0) {
 					ID3D11ShaderResourceView* Textures[] = { itr.Texture[itr.pmxdata.s_pPmxMaterial[i].TextureIndex], itr.Texture[itr.pmxdata.s_pPmxMaterial[i].ToonTextureIndex] }; //格納
 
-					context->PSSetShaderResources(0, 1, Textures);//テクスチャ張りかえる
 					context->PSSetShaderResources(0, 2, Textures);//テクスチャ張りかえる
 				}
 				else
 				{
 					ID3D11ShaderResourceView* Textures[] = { itr.Texture[itr.pmxdata.s_pPmxMaterial[i].TextureIndex], m_ClearTex }; //格納
-					context->PSSetShaderResources(0, 1, Textures);//テクスチャ張りかえる
 					context->PSSetShaderResources(0, 2, Textures);//テクスチャ張りかえる
 				}
 			}
 			else//ともに違うなら
 			{
 				ID3D11ShaderResourceView* Textures[] = { m_ClearTex, m_ClearTex }; //格納
-				context->PSSetShaderResources(0, 1, Textures);//テクスチャ張りかえる
 				context->PSSetShaderResources(0, 2, Textures);//テクスチャ張りかえる
 			}
 
@@ -102,17 +99,17 @@ void CPmx::Render(ID3D11DeviceContext *context)
 
 	}
 	RenderingDataMain.clear();
-	for (auto itr : RenderingDataShadow)
-	{
-		itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer);
-		context->Map(itr.IndiviData.Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
-		memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&itr.constantBuffer), sizeof(itr.constantBuffer));
-		//11/15アンビエント ok
-		context->Unmap(itr.IndiviData.Buffer, 0);
-		context->DrawIndexed(itr.pmxdata.s_PmxFaceNum * 3, 0, 0);
-	}
+	//for (auto itr : RenderingDataShadow)
+	//{
+	//	itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer);
+	//	context->Map(itr.IndiviData.Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
+	//	memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&itr.constantBuffer), sizeof(itr.constantBuffer));
+	//	//11/15アンビエント ok
+	//	context->Unmap(itr.IndiviData.Buffer, 0);
+	//	context->DrawIndexed(itr.pmxdata.s_PmxFaceNum * 3, 0, 0);
+	//}
 
-	//clear RenderingDataMain 
+	////clear RenderingDataMain 
 	RenderingDataShadow.clear();
 
 }
@@ -571,11 +568,13 @@ void CPmx::ProcessingCalc()
 
 		workmat = rotemat * objectPos * workmat;
 		data = updateVerBuf(&workmat);
-		keepMat = XMMatrixInverse(&useInverse, workmat);
+		//keepMat = XMMatrixInverse(&useInverse, workmat);
 
 
 		//この下消すと追従カメラに
 		//Camera::m_mView = Camera::m_mView*keepMat;
+
+		
 
 		XMStoreFloat4x4(&cbm.World, XMMatrixTranspose(workmat));
 		XMStoreFloat4x4(&cbm.View, XMMatrixTranspose(Camera::m_mView));
@@ -585,8 +584,6 @@ void CPmx::ProcessingCalc()
 		XMStoreFloat4(&cbm.specular, XMLoadFloat4((const XMFLOAT4*)&specular.data));
 		XMStoreFloat3(&cbm.light_dir, XMLoadFloat3((const XMFLOAT3*)&light_dir));
 		XMStoreFloat3(&cbm.camera_pos, XMLoadFloat3((const XMFLOAT3*)&camerapos));
-		XMStoreFloat4(&cbm.boneIndex, XMLoadFloat4((const XMFLOAT4*)&m_pmx_data.s_pPmxVertex->BoneIndex));
-		XMStoreFloat4(&cbm.boneWeight, XMLoadFloat4((const XMFLOAT4*)&m_pmx_data.s_pPmxVertex->BoneWeight));
 
 		for (int i = 0; i < data.size(); i++) {
 			cbmr.boneMatrix[i] = XMMatrixTranspose(data[i]);
@@ -760,21 +757,12 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 	WorldsCalc::Run(&bones[0], world, &worlds);//これforいるくね？　いらないみたい
 	vector<XMMATRIX> work(bones.size());
 
-
-	for (int i = 0; i < bones.size(); i++)
-	{
-		XMMATRIX workmatInv;
-		workmatInv = XMMatrixInverse(0, bones[i].offsetMat);//いらないやつをさくじょするやつ
-		work[i] = worlds[i] * workmatInv;//これを用いる
-		if (bones[i].type == 7)//非表示のため
-		{
-			work[i] *= 0;
-		}
+	for (unsigned int i = 0; i < bones.size(); ++i) {
+		XMMATRIX offsetCanceller;
+		offsetCanceller = XMMatrixInverse(0, bones[i].offsetMat);
+		work[i] = offsetCanceller * worlds[i];
 	}
-
-
-
-
+	
 	for (int i = 0; i < m_pmx_data.s_PmxVertexNum; i++)
 	{
 

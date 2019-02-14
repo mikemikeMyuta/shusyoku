@@ -123,18 +123,18 @@ namespace PmxStruct {
 		int		ParentBoneIndex;					// 親ボーンインデックス
 		int		TransformLayer;					// 変形階層
 
-		BYTE	Flag_LinkDest;						// 接続先
-		BYTE	Flag_EnableRot;					// 回転ができるか
-		BYTE	Flag_EnableMov;					// 移動ができるか
-		BYTE	Flag_Disp;							// 表示
-		BYTE	Flag_EnableControl;				// 操作ができるか
-		BYTE	Flag_IK;							// IK
-		BYTE	Flag_AddRot;						// 回転付与
-		BYTE	Flag_AddMov;						// 移動付与
-		BYTE	Flag_LockAxis;						// 軸固定
+		BYTE	 Flag_LinkDest;						// 接続先
+		BYTE	 Flag_EnableRot;					// 回転ができるか
+		BYTE  Flag_EnableMov;					// 移動ができるか
+		BYTE	 Flag_Disp;							// 表示
+		BYTE	 Flag_EnableControl;				// 操作ができるか
+		BYTE	 Flag_IK;							// IK
+		BYTE	 Flag_AddRot;						// 回転付与
+		BYTE  Flag_AddMov;						// 移動付与
+		BYTE	 Flag_LockAxis;						// 軸固定
 		BYTE	Flag_LocalAxis;					// ローカル軸
-		BYTE	Flag_AfterPhysicsTransform;		// 物理後変形
-		BYTE	Flag_OutParentTransform;			// 外部親変形
+		BYTE Flag_AfterPhysicsTransform;		// 物理後変形
+		BYTE	 Flag_OutParentTransform;			// 外部親変形
 
 		float	OffsetPosition[3];				// オフセット座標
 		int		LinkBoneIndex;						// 接続先ボーンインデックス

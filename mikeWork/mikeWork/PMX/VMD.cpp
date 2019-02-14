@@ -128,7 +128,9 @@ void VmdMotionController::UpdateBoneMatrix() {
 				float s = (float)(time - t0) / (float)(t1 - t0);	// ê¸å`ï‚äÆ
 				keepVec = XMQuaternionSlerp(XMLoadFloat4(&q0), XMLoadFloat4(&q1), s);
 				XMStoreFloat4(&boneRot[i], keepVec);
-				keepVec = XMVectorAdd(XMLoadFloat3(&p0), XMVectorSubtract(XMLoadFloat3(&p1), XMLoadFloat3(&p0))*s);
+				keepVec = XMVectorAdd(XMLoadFloat3(&p0), 
+					(XMVectorSubtract(XMLoadFloat3(&p1), XMLoadFloat3(&p0))*s)
+				);
 				XMStoreFloat3(&bonePos[i], keepVec);
 				if (time != t1) --ite_keyFrames[i];
 				finish_flg = false;

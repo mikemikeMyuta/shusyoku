@@ -39,17 +39,17 @@ HRESULT DIRECT3D11::Init(D3D_INIT* pcd)
 
 	D3D_FEATURE_LEVEL pFeatureLevels = D3D_FEATURE_LEVEL_11_0;
 
-	//UINT cdev_flag = 0;
-	//cdev_flag |= D3D11_CREATE_DEVICE_DEBUG; // 更新して解除しておく
+	UINT cdev_flag = 0;
+	cdev_flag |= D3D11_CREATE_DEVICE_DEBUG; // 更新して解除しておく
 
 	if (FAILED(D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL,
-		0, &pFeatureLevels, 1, D3D11_SDK_VERSION, &sd, &m_pSwapChain, &m_pDevice,
+		cdev_flag, &pFeatureLevels, 1, D3D11_SDK_VERSION, &sd, &m_pSwapChain, &m_pDevice,
 		NULL, &m_pDeviceContext)))
 	{
 		return FALSE;
 	}
 	//各種テクスチャーと、それに付帯する各種ビューを作成
-
+	 
 	//バックバッファーテクスチャーを取得（既にあるので作成ではない）
 	ID3D11Texture2D *pBackBuffer_Tex;
 	m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer_Tex);

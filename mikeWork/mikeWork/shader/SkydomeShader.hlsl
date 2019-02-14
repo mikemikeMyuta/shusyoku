@@ -52,23 +52,13 @@ VS_OUT vs_main(VS_IN input)
 
 }
 
-// ピクセルシェーダ
-struct PS_IN
-{
-	float4 pos : POSITION;
-	float3 pospass : POSITIONPASS;
-	float3 normal : NORMAL;
-	float4 col : COLORR;
-	float4 col_specular : COLORRR;
-	float2 Tex : TEXCOORD;
-};
 
 struct PS_OUT
 {
 	float4 col : SV_Target;
 };
 
-PS_OUT ps_main(PS_IN input)
+PS_OUT ps_main(VS_OUT input)
 {
 	PS_OUT output;
 

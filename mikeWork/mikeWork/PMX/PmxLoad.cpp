@@ -207,10 +207,14 @@ bool CLoadPMX::LoadPMXFile(LPCSTR Filename)
 		m_pmx_data.s_pPmxVertex[i].WeightType = mem[0];
 		mem++;
 
-		m_pmx_data.s_pPmxVertex[i].BoneIndex[0] = -1;
-		m_pmx_data.s_pPmxVertex[i].BoneIndex[1] = -1;
-		m_pmx_data.s_pPmxVertex[i].BoneIndex[2] = -1;
-		m_pmx_data.s_pPmxVertex[i].BoneIndex[3] = -1;
+		m_pmx_data.s_pPmxVertex[i].BoneIndex[0] = 0;
+		m_pmx_data.s_pPmxVertex[i].BoneIndex[1] = 0;
+		m_pmx_data.s_pPmxVertex[i].BoneIndex[2] = 0;
+		m_pmx_data.s_pPmxVertex[i].BoneIndex[3] = 0;
+		m_pmx_data.s_pPmxVertex[i].BoneWeight[0] = 0;
+		m_pmx_data.s_pPmxVertex[i].BoneWeight[1] = 0;
+		m_pmx_data.s_pPmxVertex[i].BoneWeight[2] = 0;
+		m_pmx_data.s_pPmxVertex[i].BoneWeight[3] = 0;
 		switch (m_pmx_data.s_pPmxVertex[i].WeightType)
 		{
 		case 0:	// BDEF1
