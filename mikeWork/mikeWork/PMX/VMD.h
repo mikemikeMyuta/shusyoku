@@ -41,5 +41,9 @@ public:
 	}
 	void UpdateBoneMatrix();				// キーフレームデータを元にボーン行列を更新
 	void AdvanceTime();
+	void timeset(float timedif)
+	{
+		time = timedif;
+	}
 };
 

@@ -128,7 +128,7 @@ void VmdMotionController::UpdateBoneMatrix() {
 				float s = (float)(time - t0) / (float)(t1 - t0);	// 線形補完
 				keepVec = XMQuaternionSlerp(XMLoadFloat4(&q0), XMLoadFloat4(&q1), s);
 				XMStoreFloat4(&boneRot[i], keepVec);
-				keepVec = XMVectorAdd(XMLoadFloat3(&p0), 
+				keepVec = XMVectorAdd(XMLoadFloat3(&p0),
 					(XMVectorSubtract(XMLoadFloat3(&p1), XMLoadFloat3(&p0))*s)
 				);
 				XMStoreFloat3(&bonePos[i], keepVec);
@@ -181,7 +181,7 @@ void VmdMotionController::UpdateIK(const MmdStruct::PmdIkData& ikData) {
 			XMMATRIX invCoord;
 			invCoord = XMMatrixInverse(0, (*bones)[attentionIdx].GetModelLocalBoneMat());
 
-		
+
 
 			localEffectorPosVec = XMVector3TransformCoord(XMLoadFloat3(&effectorPos), invCoord);						// 注目ボーン基準に変換（エフェクター）
 			XMStoreFloat3(&localEffectorPos, localEffectorPosVec);//Float3に変換
@@ -215,7 +215,7 @@ void VmdMotionController::UpdateIK(const MmdStruct::PmdIkData& ikData) {
 			}
 
 			XMVECTOR pVec = XMVector3Dot(localEffectorDirVec, localTargetDirVec);
-			float p=0;
+			float p = 0;
 			XMStoreFloat(&p, pVec);
 			if (p > 1.0f) {
 				p = 1.0f;
@@ -228,39 +228,43 @@ void VmdMotionController::UpdateIK(const MmdStruct::PmdIkData& ikData) {
 			//角度を求める
 			float angle = acos(p);
 
-		/*	if (angle > 4 * ikData.control_weight) {
-				angle = 4.0f*ikData.control_weight;
-			}*/
+			/*	if (angle > 4 * ikData.control_weight) {
+					angle = 4.0f*ikData.control_weight;
+				}*/
 			if (angle > ikData.control_weight) {
 				angle = ikData.control_weight;
 			}
 
 			XMVECTOR axis;
-			axis=XMVector3Cross(localEffectorDirVec, localTargetDirVec);
-		
+			axis = XMVector3Cross(localEffectorDirVec, localTargetDirVec);
+
 			XMMATRIX rotation;
-			rotation=XMMatrixRotationAxis(axis, angle);
+			if (!XMVectorEqual(axis, XMVectorZero()).m128_f32[0])
+			{
+				rotation = XMMatrixRotationAxis(axis, angle);
+			}
+
 
 			if ((*bones)[attentionIdx].name.find("ひざ") != string::npos) {
 				XMMATRIX inv;
-				inv=XMMatrixInverse( 0, (*bones)[attentionIdx].initMat);
+				inv = XMMatrixInverse(0, (*bones)[attentionIdx].initMat);
 
 				XMMATRIX def = rotation * (*bones)[attentionIdx].boneMat*inv;
 				XMFLOAT3 t(0, 0, 1);
 				XMVECTOR tVec = XMLoadFloat3(&t);
 
-				tVec=XMVector3TransformCoord(tVec, def);
+				tVec = XMVector3TransformCoord(tVec, def);
 
 				XMStoreFloat3(&t, tVec);
 
 				if (t.y < 0) {
-					rotation=XMMatrixRotationAxis(axis, -angle);
+					rotation = XMMatrixRotationAxis(axis, -angle);
 				}
 
 				//膝ボーンがエフェクター（ターゲットボーン）より近いときは回転量を追加する(
-					XMVECTOR lVec = XMVector3Length(localTargetPosVec) / XMVector3Length(localEffectorPosVec);
-					FLOAT l = 0;
-					XMStoreFloat(&l, lVec);
+				XMVECTOR lVec = XMVector3Length(localTargetPosVec) / XMVector3Length(localEffectorPosVec);
+				FLOAT l = 0;
+				XMStoreFloat(&l, lVec);
 				if (fabs(angle) <= XM_PI / 2 && l < 1.0f) {
 					static const float a = 0.5f;
 					float diff = acosf(l)*a;
@@ -290,6 +294,6 @@ void VmdMotionController::UpdateIK(const MmdStruct::PmdIkData& ikData) {
 }
 
 void VmdMotionController::AdvanceTime() {
-	++time;
+	time ++;
 }
 

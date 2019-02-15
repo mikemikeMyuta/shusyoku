@@ -814,23 +814,23 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 	//モーフ計算
 	static FLOAT timeMorph;//現在時間
 	static FLOAT timedif;//時間差
-	static BOOL MorphEyeOpen = true;//どっちの状態か
+	static BOOL MorphState = true;//どっちの状態か trueが通常
 
-	if (timeMorph > 1 && !MorphEyeOpen)
+	if (timeMorph > 1 && !MorphState)
 	{
-		MorphEyeOpen = true;
-		timedif = -0.01;
+		MorphState = true;
+		timedif = -0.02;
 	}
-	else if (timeMorph <= 0 && MorphEyeOpen)
+	else if (timeMorph <= 0 && MorphState)
 	{
-		MorphEyeOpen = false;
-		timedif = +0.01;
+		MorphState = false;
+		timedif = +0.02;
 	}
 	timeMorph += timedif;
 
 
 	//モーフ設定
-	for (int i = 0; i < m_pmx_data.s_pPmxMorph[17].DataNum; i++)
+	for (int i = 0; i < m_pmx_data.s_pPmxMorph[MorphNum].DataNum; i++)
 	{
 
 		//計算するやつ
@@ -839,9 +839,9 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 		FLOAT Work;
 
 		//X
-		q1 = XMLoadFloat(&VertexBufferUpdate[m_pmx_data.s_pPmxMorph[17].Vertex[i].Index].pos[0]);
+		q1 = XMLoadFloat(&VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[0]);
 
-		Work = VertexBufferUpdate[m_pmx_data.s_pPmxMorph[17].Vertex[i].Index].pos[0] + m_pmx_data.s_pPmxMorph[17].Vertex[i].Offset[0];
+		Work = VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[0] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[0];
 
 		q2 = XMLoadFloat(&Work);
 
@@ -849,12 +849,12 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 
 		XMStoreFloat(&ansFloat, ans);
 
-		VertexBufferUpdate[m_pmx_data.s_pPmxMorph[17].Vertex[i].Index].pos[0] = ansFloat;
+		VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[0] = ansFloat;
 
 		//Y
-		q1 = XMLoadFloat(&VertexBufferUpdate[m_pmx_data.s_pPmxMorph[17].Vertex[i].Index].pos[1]);
+		q1 = XMLoadFloat(&VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[1]);
 
-		Work = VertexBufferUpdate[m_pmx_data.s_pPmxMorph[17].Vertex[i].Index].pos[1] + m_pmx_data.s_pPmxMorph[17].Vertex[i].Offset[1];
+		Work = VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[1] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[1];
 
 		q2 = XMLoadFloat(&Work);
 
@@ -862,12 +862,12 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 
 		XMStoreFloat(&ansFloat, ans);
 
-		VertexBufferUpdate[m_pmx_data.s_pPmxMorph[17].Vertex[i].Index].pos[1] = ansFloat;
+		VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[1] = ansFloat;
 
 		//Z
-		q1 = XMLoadFloat(&VertexBufferUpdate[m_pmx_data.s_pPmxMorph[17].Vertex[i].Index].pos[2]);
+		q1 = XMLoadFloat(&VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[2]);
 
-		Work = VertexBufferUpdate[m_pmx_data.s_pPmxMorph[17].Vertex[i].Index].pos[2] + m_pmx_data.s_pPmxMorph[17].Vertex[i].Offset[2];
+		Work = VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[2] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[2];
 
 		q2 = XMLoadFloat(&Work);
 
@@ -875,7 +875,7 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 
 		XMStoreFloat(&ansFloat, ans);
 
-		VertexBufferUpdate[m_pmx_data.s_pPmxMorph[17].Vertex[i].Index].pos[2] = ansFloat;
+		VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[2] = ansFloat;
 
 
 	}

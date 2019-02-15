@@ -12,6 +12,12 @@ public:
 		
 	}
 
+	CMainchar(DrawingType type,UINT morphNum) :CPmx(type,morphNum)
+	{
+
+	}
+
+
 	CMainchar() :CPmx()
 	{
 

@@ -6,6 +6,9 @@ Director::Director()
 {
 	ZeroMemory(this, sizeof(Director));
 	dance = new VmdMotionController();
+	dance2 = new VmdMotionController();
+
+
 	m_Scene = GAMEMAIN;
 }
 
@@ -45,7 +48,7 @@ void Director::Run(HINSTANCE hInstance)
 		}
 		else
 		{
-		
+
 			MainLoop();
 		}
 	}
@@ -128,7 +131,7 @@ HRESULT Director::Init()
 	//SetSoundDirectory();
 	//m_pSound->LoadSound("Chorus.wav");
 
-	//init pmx
+	////init pmx
 	//MayuSuki = new CMainchar(DrawingType::player);
 	//MayuSuki->Init(m_pD3d->m_pDevice, MAYU2, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)MAYU_PASS);
 	////コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
@@ -137,24 +140,24 @@ HRESULT Director::Init()
 	//MayuShadow->Init(m_pD3d->m_pDevice, MAYU2, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)MAYU_PASS);
 
 
-	FreChan = new CMainchar(DrawingType::player);
+	FreChan = new CMainchar(DrawingType::player,17);
 	FreChan->Init(m_pD3d->m_pDevice, FREDERICA, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)FREDERICA_PASS);
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
 	//FreChan->setPosition(XMFLOAT3(10, 0, 0));
-	FreChan->setPosition(XMFLOAT3(0, 0, 0));
+	FreChan->setPosition(XMFLOAT3(5, 0, 0));
 
 	FreChanShadow = new CMainchar(DrawingType::shadow);
 	FreChanShadow->Init(m_pD3d->m_pDevice, FREDERICA, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)FREDERICA_PASS);
 
-	//Kanade = new CMainchar(DrawingType::player);
-	//Kanade->Init(m_pD3d->m_pDevice, KANADE, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)KANADE_PASS);
+	Kanade = new CMainchar(DrawingType::player,16);
+	Kanade->Init(m_pD3d->m_pDevice, KANADE, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)KANADE_PASS);
 
 
-	////コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
-	//Kanade->setPosition(XMFLOAT3(-10, 0, 0));
+	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
+	Kanade->setPosition(XMFLOAT3(-5, 0, 0));
 
-	//KanadeShadow = new CMainchar(DrawingType::shadow);
-	//KanadeShadow->Init(m_pD3d->m_pDevice, KANADE, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)KANADE_PASS);
+	KanadeShadow = new CMainchar(DrawingType::shadow);
+	KanadeShadow->Init(m_pD3d->m_pDevice, KANADE, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)KANADE_PASS);
 
 
 
@@ -166,12 +169,11 @@ HRESULT Director::Init()
 
 	//VMD
 	dance->LoadVmdFile((char*)DANCE, FreChan->DeliverBones(), FreChan->DeliverPmdIkData(), true);
-
-	
+	dance2->LoadVmdFile((char*)DANCE, Kanade->DeliverBones(), Kanade->DeliverPmdIkData(), true);
 
 	//モーションセット
 	FreChan->SetMotion(dance);
-
+	Kanade->SetMotion(dance2);
 	//11/10 init ok 他もしましょう
 
 	/*fbxの読み込み*/
@@ -207,22 +209,18 @@ void Director::Draw()
 	//stage
 
 	stage->ProcessingCalc();
-	
-	//キャラクター
-	/*MayuShadow->setPosition(MayuSuki->getPosition());
-	MayuShadow->setRotetation(MayuSuki->getRotetation());
-	MayuShadow->charDraw();
-	MayuSuki->charDraw();
 
-	FreChanShadow->setPosition(FreChan->getPosition());
+	//キャラクター
+
+	/*FreChanShadow->setPosition(FreChan->getPosition());
 	FreChanShadow->setRotetation(FreChan->getRotetation());
 	FreChanShadow->charDraw();*/
 	FreChan->charDraw();
 
 	/*KanadeShadow->setPosition(Kanade->getPosition());
 	KanadeShadow->setRotetation(Kanade->getRotetation());
-	KanadeShadow->charDraw();
-	Kanade->charDraw();*/
+	KanadeShadow->charDraw();*/
+	Kanade->charDraw();
 }
 void Director::Update()
 {
@@ -232,6 +230,10 @@ void Director::Update()
 
 	dance->AdvanceTime();
 	dance->UpdateBoneMatrix();
+
+	dance2->AdvanceTime();
+	dance2->UpdateBoneMatrix();
+
 
 }
 void Director::TitleInitShader()
@@ -296,7 +298,7 @@ void Director::TitleInitShader()
 		VECTOR3(-0.5f,0.8f,1.0f),VECTOR2(0,0),
 		VECTOR3(0.5f,-0.8f,-1.0f),VECTOR2(1,1),
 		VECTOR3(-0.5f,-0.8f,1.0f),VECTOR2(0,1)
-		
+
 	};
 	D3D11_BUFFER_DESC bd;
 	bd.Usage = D3D11_USAGE_DEFAULT;

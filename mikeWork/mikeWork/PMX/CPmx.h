@@ -151,6 +151,8 @@ public:
 	vector<ID3D11ShaderResourceView*> TexData;//テクスチャのデータを格納
 
 
+	UINT MorphNum;//モーフナンバー格納
+
 
 	//drawを変える 11/9　clear (11/9)
 
@@ -223,7 +225,7 @@ private:
 	void PmxLoad(const LPCSTR);//データをロードするのを一括にする
 	void TexLoad(ID3D11Device*, LPSTR);//ロードされたデータを用いてテクスチャの読み込みを行う
 	void Draw(const PMX_DATA, const  CONSTANT_BUFFER_OBJECT, const ObjectIndividualData*);//prepare drawing
-	void Draw(const PMX_DATA, const  CONSTANT_BUFFER_MAINCHARCTER,const CONSTANT_BONE_MATRIX, const ObjectIndividualData*);//prepare drawing
+	void Draw(const PMX_DATA, const  CONSTANT_BUFFER_MAINCHARCTER, const CONSTANT_BONE_MATRIX, const ObjectIndividualData*);//prepare drawing
 	void Draw(const PMX_DATA, const  CONSTANT_BUFFER, const ObjectIndividualData*);//prepare drawing
 		//create buffer
 	void IndexdataForPoint(ID3D11Device* pDevice);//fbxからインデックスに変換する
@@ -257,6 +259,7 @@ public:
 		workmat = XMMatrixIdentity();
 		Position = XMFLOAT3(0, 0, 0);
 		Rotetation = XMFLOAT3(0, 1, 0);
+		MorphNum = 0;
 	}
 
 	CPmx(DrawingType inputType)
@@ -269,6 +272,20 @@ public:
 		workmat = XMMatrixIdentity();
 		Position = XMFLOAT3(0, 0, 0);
 		Rotetation = XMFLOAT3(0, 0, 0);
+		MorphNum = 0;
+	}
+
+	CPmx(DrawingType inputType, UINT inputMorphNum)
+	{
+
+		pCompilePS = NULL;
+		pCompileVS = NULL;
+		IndiviData = new ObjectIndividualData();
+		type = inputType;
+		workmat = XMMatrixIdentity();
+		Position = XMFLOAT3(0, 0, 0);
+		Rotetation = XMFLOAT3(0, 0, 0);
+		MorphNum = inputMorphNum;
 	}
 
 	virtual ~CPmx() {

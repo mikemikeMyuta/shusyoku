@@ -79,6 +79,8 @@ public:
 
 	//VMD
 	VmdMotionController *dance;
+	VmdMotionController *Stand;
+	VmdMotionController *dance2;
 
 
 	//Method
