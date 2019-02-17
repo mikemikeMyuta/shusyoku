@@ -69,18 +69,24 @@ public:
 	CMainchar *FreChan;
 	CMainchar *FreChanShadow;
 	
-	CMainchar *MayuSuki;
-	CMainchar *MayuShadow;
+	CMainchar *Ai;
+	CMainchar *AiShadow;
 
 	CMainchar *Kanade;
 	CMainchar *KanadeShadow;
 
+	CMainchar *Miku;
+	CMainchar *MikuShadow;
+
 	CPmx* stage;
 
-	//VMD
-	VmdMotionController *dance;
-	VmdMotionController *Stand;
-	VmdMotionController *dance2;
+	//VMD 
+	VmdMotionController *FrechanDance;
+	VmdMotionController *KanadeDance;
+	VmdMotionController *AiDance;
+	VmdMotionController *MikuDance;
+	
+
 
 
 	//Method

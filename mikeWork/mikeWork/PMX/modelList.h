@@ -3,24 +3,38 @@
 //model data file
 
 //Relative path from asset/Model file
-#define YUDACHI ("asset/Model/ぽんぷ長式夕立改二＿01/ぽんぷ長式夕立改二＿01_フル装備.pmx")
-#define YUDACHI_PASS ("asset/Model/ぽんぷ長式夕立改二＿01/")
 #define FREDERICA ("asset/ModeL/frederica/frederica.pmx")
 #define FREDERICA_PASS ("asset/ModeL/frederica/")
+
 #define KANADE ("asset/ModeL/kanade/kanade.pmx")
 #define KANADE_PASS ("asset/ModeL/kanade/")
 
+#define UDUKI ("asset/ModeL/uduki/uduki.pmx")//うまくいかなかった足のボーンとか　今後やります
+#define UDUKI_PASS ("asset/ModeL/uduki/")
 
+#define AI ("asset/ModeL/ai/ai.pmx")
+#define AI_PASS ("asset/ModeL/ai/")
+
+#define KAEDE ("asset/ModeL/kaede/kaede.pmx")//これもダメだった・・・なんでだろう・・・
+#define KAEDE_PASS ("asset/ModeL/kaede/")
+
+#define MIKU ("asset/ModeL/miku/miku.pmx")//これもダメだった・・・なんでだろう・・・
+#define MIKU_PASS ("asset/ModeL/miku/")
+
+
+//いろいろ崩壊した
 #define MAYU ("asset/ModeL/mayu/mayu.pmx")
 #define MAYU2 ("asset/ModeL/mayu/mayu2.pmx")
 #define MAYU_PASS ("asset/ModeL/mayu/")
 
 
-
+//stage
 #define STAGE ("asset/ModeL/stage/CloverClub.pmx")
 #define STAGE_PASS ("asset/ModeL/stage/")
 
-//テクスチャが日本語名なので少し保留
+
+
+//テクスチャが日本語名なので少し保留 今はやらないでおきます
 #define SYUGAHA ("asset/ModeL/syugaha/syugaha.pmx")
 #define SYUGAHA_PASS ("asset/ModeL/syugaha/")
 

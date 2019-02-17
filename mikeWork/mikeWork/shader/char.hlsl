@@ -20,7 +20,7 @@ cbuffer  global: register(b0) {
 
 cbuffer BoneMatrix:register(b1)
 {
-	matrix BoneMatrix[400];//四百個のボーンしか使えない
+	matrix BoneMatrix[200];//四百個のボーンしか使えない
 }
 
 //
@@ -90,7 +90,7 @@ PS_OUT ps_main(VS_OUT input)
 
 	P = input.pospass;
 	//単位ベクトル化
-	N = normalize(input.normal)*(2.0f* g_tex.Sample(g_samLinear, input.Tex).xyz - 1.0f);
+	N = normalize(input.normal*(2.0f* g_tex.Sample(g_samLinear, input.Tex).xyz - 1.0f));
 
 	L = normalize(-light_dir);
 	V = camera_pos - P;
@@ -123,6 +123,7 @@ PS_OUT ps_main(VS_OUT input)
 	float2 toonUV;
 	toonUV.x = dotD;
 	toonUV.y = dotD;
+
 
 	float4 toon = g_texAni.Sample(g_samLinear, toonUV);
 	//(11/15)shader ok これに合うように作り替えるソース

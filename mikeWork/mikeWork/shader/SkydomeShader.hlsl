@@ -68,9 +68,11 @@ PS_OUT ps_main(VS_OUT input)
 	float3 V;//ベクトル
 	float3 H;//ハーフベクトル
 
+	float4 diffuse;
+
 	P = input.pospass;
 	//単位ベクトル化
-	N = normalize(input.normal)*(2.0f* g_tex.Sample(g_samLinear, input.Tex).xyz - 1.0f);
+	N = normalize(input.normal*(2.0f* g_tex.Sample(g_samLinear, input.Tex).xyz - 1.0f));
 
 	L = normalize(-light_dir);
 	V = camera_pos - P;
@@ -90,6 +92,7 @@ PS_OUT ps_main(VS_OUT input)
 	float4 colDif;
 	float4 colSpe;
 
+	diffuse = max(0, dot(L, N.xyz));
 	float s = pow(max(0, dot(N, H)), 30);
 
 	//ランバート

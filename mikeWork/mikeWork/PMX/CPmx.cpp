@@ -99,17 +99,17 @@ void CPmx::Render(ID3D11DeviceContext *context)
 
 	}
 	RenderingDataMain.clear();
-	//for (auto itr : RenderingDataShadow)
-	//{
-	//	itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer);
-	//	context->Map(itr.IndiviData.Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
-	//	memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&itr.constantBuffer), sizeof(itr.constantBuffer));
-	//	//11/15アンビエント ok
-	//	context->Unmap(itr.IndiviData.Buffer, 0);
-	//	context->DrawIndexed(itr.pmxdata.s_PmxFaceNum * 3, 0, 0);
-	//}
+	for (auto itr : RenderingDataShadow)
+	{
+		itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer);
+		context->Map(itr.IndiviData.Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
+		memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&itr.constantBuffer), sizeof(itr.constantBuffer));
+		//11/15アンビエント ok
+		context->Unmap(itr.IndiviData.Buffer, 0);
+		context->DrawIndexed(itr.pmxdata.s_PmxFaceNum * 3, 0, 0);
+	}
 
-	////clear RenderingDataMain 
+	//clear RenderingDataMain 
 	RenderingDataShadow.clear();
 
 }
@@ -408,9 +408,6 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 		diffuse[i].data.x = m_pmx_data.s_pPmxMaterial[i].Diffuse[0]; //R
 		diffuse[i].data.y = m_pmx_data.s_pPmxMaterial[i].Diffuse[1]; ;	//G
 		diffuse[i].data.z = m_pmx_data.s_pPmxMaterial[i].Diffuse[2]; ;	//B
-		//diffuse[i].data.x = 0.0f; //R
-		//diffuse[i].data.y = 0.0f;	//G
-		//diffuse[i].data.z = 0.0f;	//B
 		diffuse[i].data.w = 1;	//A
 	}
 	//specular 個人設定
@@ -439,6 +436,7 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 	switch (type)
 	{
 	case player:
+	case shadow:
 
 		cb.ByteWidth = sizeof(CONSTANT_BUFFER_MAINCHARCTER) + 8;//16の倍数になるように調整
 		cb.StructureByteStride = sizeof(CONSTANT_BUFFER_MAINCHARCTER) + 8;
@@ -565,7 +563,7 @@ void CPmx::ProcessingCalc()
 	switch (type)
 	{
 	case player:
-
+	case shadow:
 		workmat = rotemat * objectPos * workmat;
 		data = updateVerBuf(&workmat);
 		//keepMat = XMMatrixInverse(&useInverse, workmat);
@@ -606,16 +604,6 @@ void CPmx::ProcessingCalc()
 		Draw(m_pmx_data, cbo, IndiviData);//insert data
 
 		//OutputDebugString("\n SetObjectData\n");
-
-		break;
-	case shadow:
-		workmat = rotemat * objectPos * workmat;
-		XMStoreFloat4x4(&cb.World, XMMatrixTranspose(workmat));
-		XMStoreFloat4x4(&cb.View, XMMatrixTranspose(Camera::m_mView));
-		XMStoreFloat4x4(&cb.Projection, XMMatrixTranspose(Camera::m_mProj));
-		Draw(m_pmx_data, cb, IndiviData);//insert data
-
-		//OutputDebugString("\n SetshadowData\n");
 
 		break;
 	}
@@ -746,70 +734,71 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 	D3D11_BUFFER_DESC bd_vertex;
 	ZeroMemory(&bd_vertex, sizeof(bd_vertex));
 
-	//必要な形にデータを格納しなおす
-	if (VertexBufferUpdate == NULL) {
-		VertexBufferUpdate = new PMX_SEND_DATA[m_pmx_data.s_PmxVertexNum];
-	}
 	int j = 0;//現在のマテリアルの番号を格納
 	int index = m_pmx_data.s_pPmxMaterial[j].MaterialFaceNum;
 
 	vector<XMMATRIX> worlds(bones.size());
 	WorldsCalc::Run(&bones[0], world, &worlds);//これforいるくね？　いらないみたい
+	//必要な形にデータを格納しなおす
+	if (VertexBufferUpdate == NULL) {
+		VertexBufferUpdate = new PMX_SEND_DATA[m_pmx_data.s_PmxVertexNum];
+
+	
 
 
-	for (int i = 0; i < m_pmx_data.s_PmxVertexNum; i++)
-	{
-
-		////ここをもう少し考える
-		////うまい感じにマトリックスの座標をもってくる
-		//XMMATRIX matwork;
-
-		////12/13 計算をマトリックスでしてから座標算出でやってみる
-		//fixed 頂点ブレンドでやってます。最終的にはこれ消したいですね
-
-
-		VertexBufferUpdate[i].pos[0] = MmdStruct::scale*m_pmx_data.s_pPmxVertex[i].Position[0];
-		VertexBufferUpdate[i].pos[1] = MmdStruct::scale*m_pmx_data.s_pPmxVertex[i].Position[1];
-		VertexBufferUpdate[i].pos[2] = MmdStruct::scale*m_pmx_data.s_pPmxVertex[i].Position[2];
-
-		VertexBufferUpdate[i].normal[0] = m_pmx_data.s_pPmxVertex[i].Normal[0];
-		VertexBufferUpdate[i].normal[1] = m_pmx_data.s_pPmxVertex[i].Normal[1];
-		VertexBufferUpdate[i].normal[2] = m_pmx_data.s_pPmxVertex[i].Normal[2];
-
-		VertexBufferUpdate[i].uv[0] = m_pmx_data.s_pPmxVertex[i].UV[0];
-		VertexBufferUpdate[i].uv[1] = m_pmx_data.s_pPmxVertex[i].UV[1];
-
-		if (i == index)
+		for (int i = 0; i < m_pmx_data.s_PmxVertexNum; i++)
 		{
-			j++;//マテリアル番号更新
-			index += m_pmx_data.s_pPmxMaterial[j].MaterialFaceNum;
+
+			////ここをもう少し考える
+			////うまい感じにマトリックスの座標をもってくる
+			//XMMATRIX matwork;
+
+			////12/13 計算をマトリックスでしてから座標算出でやってみる
+			//fixed 頂点ブレンドでやってます。最終的にはこれ消したいですね
+
+
+			VertexBufferUpdate[i].pos[0] = MmdStruct::scale*m_pmx_data.s_pPmxVertex[i].Position[0];
+			VertexBufferUpdate[i].pos[1] = MmdStruct::scale*m_pmx_data.s_pPmxVertex[i].Position[1];
+			VertexBufferUpdate[i].pos[2] = MmdStruct::scale*m_pmx_data.s_pPmxVertex[i].Position[2];
+
+			VertexBufferUpdate[i].normal[0] = m_pmx_data.s_pPmxVertex[i].Normal[0];
+			VertexBufferUpdate[i].normal[1] = m_pmx_data.s_pPmxVertex[i].Normal[1];
+			VertexBufferUpdate[i].normal[2] = m_pmx_data.s_pPmxVertex[i].Normal[2];
+
+			VertexBufferUpdate[i].uv[0] = m_pmx_data.s_pPmxVertex[i].UV[0];
+			VertexBufferUpdate[i].uv[1] = m_pmx_data.s_pPmxVertex[i].UV[1];
+
+			if (i == index)
+			{
+				j++;//マテリアル番号更新
+				index += m_pmx_data.s_pPmxMaterial[j].MaterialFaceNum;
+			}
+
+			VertexBufferUpdate[i].col[0] = m_pmx_data.s_pPmxMaterial[j].Diffuse[0]; //R
+			VertexBufferUpdate[i].col[1] = m_pmx_data.s_pPmxMaterial[j].Diffuse[1]; 	//G
+			VertexBufferUpdate[i].col[2] = m_pmx_data.s_pPmxMaterial[j].Diffuse[2]; 	//B
+			VertexBufferUpdate[i].col[3] = m_pmx_data.s_pPmxMaterial[j].Diffuse[3];	//A
+
+			VertexBufferUpdate[i].col2[0] = m_pmx_data.s_pPmxMaterial[j].Specular[0]; //R
+			VertexBufferUpdate[i].col2[1] = m_pmx_data.s_pPmxMaterial[j].Specular[1]; 	//G
+			VertexBufferUpdate[i].col2[2] = m_pmx_data.s_pPmxMaterial[j].Specular[2]; 	//B
+			VertexBufferUpdate[i].col2[3] = m_pmx_data.s_pPmxMaterial[j].Specular[3];	//A
+
+
+			//ボーンインデックス
+			VertexBufferUpdate[i].boneIndex[0] = m_pmx_data.s_pPmxVertex[i].BoneIndex[0];
+			VertexBufferUpdate[i].boneIndex[1] = m_pmx_data.s_pPmxVertex[i].BoneIndex[1];
+			VertexBufferUpdate[i].boneIndex[2] = m_pmx_data.s_pPmxVertex[i].BoneIndex[2];
+			VertexBufferUpdate[i].boneIndex[3] = m_pmx_data.s_pPmxVertex[i].BoneIndex[3];
+
+			VertexBufferUpdate[i].boneWeight[0] = m_pmx_data.s_pPmxVertex[i].BoneWeight[0];
+			VertexBufferUpdate[i].boneWeight[1] = m_pmx_data.s_pPmxVertex[i].BoneWeight[1];
+			VertexBufferUpdate[i].boneWeight[2] = m_pmx_data.s_pPmxVertex[i].BoneWeight[2];
+			VertexBufferUpdate[i].boneWeight[3] = m_pmx_data.s_pPmxVertex[i].BoneWeight[3];
+
+
 		}
-
-		VertexBufferUpdate[i].col[0] = m_pmx_data.s_pPmxMaterial[j].Diffuse[0]; //R
-		VertexBufferUpdate[i].col[1] = m_pmx_data.s_pPmxMaterial[j].Diffuse[1]; 	//G
-		VertexBufferUpdate[i].col[2] = m_pmx_data.s_pPmxMaterial[j].Diffuse[2]; 	//B
-		VertexBufferUpdate[i].col[3] = m_pmx_data.s_pPmxMaterial[j].Diffuse[3];	//A
-
-		VertexBufferUpdate[i].col2[0] = m_pmx_data.s_pPmxMaterial[j].Specular[0]; //R
-		VertexBufferUpdate[i].col2[1] = m_pmx_data.s_pPmxMaterial[j].Specular[1]; 	//G
-		VertexBufferUpdate[i].col2[2] = m_pmx_data.s_pPmxMaterial[j].Specular[2]; 	//B
-		VertexBufferUpdate[i].col2[3] = m_pmx_data.s_pPmxMaterial[j].Specular[3];	//A
-
-
-		//ボーンインデックス
-		VertexBufferUpdate[i].boneIndex[0] = m_pmx_data.s_pPmxVertex[i].BoneIndex[0];
-		VertexBufferUpdate[i].boneIndex[1] = m_pmx_data.s_pPmxVertex[i].BoneIndex[1];
-		VertexBufferUpdate[i].boneIndex[2] = m_pmx_data.s_pPmxVertex[i].BoneIndex[2];
-		VertexBufferUpdate[i].boneIndex[3] = m_pmx_data.s_pPmxVertex[i].BoneIndex[3];
-
-		VertexBufferUpdate[i].boneWeight[0] = m_pmx_data.s_pPmxVertex[i].BoneWeight[0];
-		VertexBufferUpdate[i].boneWeight[1] = m_pmx_data.s_pPmxVertex[i].BoneWeight[1];
-		VertexBufferUpdate[i].boneWeight[2] = m_pmx_data.s_pPmxVertex[i].BoneWeight[2];
-		VertexBufferUpdate[i].boneWeight[3] = m_pmx_data.s_pPmxVertex[i].BoneWeight[3];
-
-
 	}
-
 
 	//モーフ計算
 	static FLOAT timeMorph;//現在時間
@@ -819,12 +808,12 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 	if (timeMorph > 1 && !MorphState)
 	{
 		MorphState = true;
-		timedif = -0.02;
+		timedif = -0.01;//ここ可変だといいね
 	}
 	else if (timeMorph <= 0 && MorphState)
 	{
 		MorphState = false;
-		timedif = +0.02;
+		timedif = +0.01;
 	}
 	timeMorph += timedif;
 
@@ -833,15 +822,17 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 	for (int i = 0; i < m_pmx_data.s_pPmxMorph[MorphNum].DataNum; i++)
 	{
 
+	
 		//計算するやつ
 		XMVECTOR q1, q2, ans;
 		FLOAT ansFloat;
 		FLOAT Work;
 
 		//X
-		q1 = XMLoadFloat(&VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[0]);
+		float X = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[0];
+		q1 = XMLoadFloat(&X);
 
-		Work = VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[0] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[0];
+		Work = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[0] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[0];
 
 		q2 = XMLoadFloat(&Work);
 
@@ -852,9 +843,10 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 		VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[0] = ansFloat;
 
 		//Y
-		q1 = XMLoadFloat(&VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[1]);
+		float Y = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[1];
+		q1 = XMLoadFloat(&Y);
 
-		Work = VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[1] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[1];
+		Work = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[1] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[1];
 
 		q2 = XMLoadFloat(&Work);
 
@@ -865,9 +857,10 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 		VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[1] = ansFloat;
 
 		//Z
-		q1 = XMLoadFloat(&VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[2]);
+		float Z = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[2];
+		q1 = XMLoadFloat(&Z);
 
-		Work = VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[2] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[2];
+		Work = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[2] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[2];
 
 		q2 = XMLoadFloat(&Work);
 

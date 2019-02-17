@@ -85,7 +85,7 @@ struct CONSTANT_BUFFER {
 
 struct CONSTANT_BONE_MATRIX
 {
-	XMMATRIX boneMatrix[400];
+	XMMATRIX boneMatrix[200];
 };
 
 //Rendering Data Struct

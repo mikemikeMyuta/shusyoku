@@ -5,9 +5,10 @@
 Director::Director()
 {
 	ZeroMemory(this, sizeof(Director));
-	dance = new VmdMotionController();
-	dance2 = new VmdMotionController();
-
+	FrechanDance = new VmdMotionController();
+	KanadeDance = new VmdMotionController();
+	AiDance = new VmdMotionController();
+	MikuDance = new VmdMotionController();
 
 	m_Scene = GAMEMAIN;
 }
@@ -131,36 +132,48 @@ HRESULT Director::Init()
 	//SetSoundDirectory();
 	//m_pSound->LoadSound("Chorus.wav");
 
-	////init pmx
-	//MayuSuki = new CMainchar(DrawingType::player);
-	//MayuSuki->Init(m_pD3d->m_pDevice, MAYU2, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)MAYU_PASS);
-	////コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
-	//MayuSuki->setPosition(XMFLOAT3(0, 0, 7));
-	//MayuShadow = new CMainchar(DrawingType::shadow);
-	//MayuShadow->Init(m_pD3d->m_pDevice, MAYU2, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)MAYU_PASS);
+	//init pmx
 
-
+	//フレデリカ
 	FreChan = new CMainchar(DrawingType::player,17);
 	FreChan->Init(m_pD3d->m_pDevice, FREDERICA, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)FREDERICA_PASS);
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
-	//FreChan->setPosition(XMFLOAT3(10, 0, 0));
-	FreChan->setPosition(XMFLOAT3(5, 0, 0));
+	FreChan->setPosition(XMFLOAT3(3, 0, 0));
 
-	FreChanShadow = new CMainchar(DrawingType::shadow);
+	FreChanShadow = new CMainchar(DrawingType::shadow,17);
 	FreChanShadow->Init(m_pD3d->m_pDevice, FREDERICA, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)FREDERICA_PASS);
 
+
+	//奏
 	Kanade = new CMainchar(DrawingType::player,16);
 	Kanade->Init(m_pD3d->m_pDevice, KANADE, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)KANADE_PASS);
-
-
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
-	Kanade->setPosition(XMFLOAT3(-5, 0, 0));
+	Kanade->setPosition(XMFLOAT3(-10, 0, 0));
 
-	KanadeShadow = new CMainchar(DrawingType::shadow);
+	KanadeShadow = new CMainchar(DrawingType::shadow,16);
 	KanadeShadow->Init(m_pD3d->m_pDevice, KANADE, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)KANADE_PASS);
 
+	//雛鶴愛
+	Ai = new CMainchar(DrawingType::player, 2);
+	Ai->Init(m_pD3d->m_pDevice, AI, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)AI_PASS);
+	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
+	Ai->setPosition(XMFLOAT3(10, 0, 0));
+
+	AiShadow = new CMainchar(DrawingType::shadow, 2);
+	AiShadow->Init(m_pD3d->m_pDevice, AI, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)AI_PASS);
+
+	//ミク
+	Miku = new CMainchar(DrawingType::player, 12);
+	Miku->Init(m_pD3d->m_pDevice, MIKU, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)MIKU_PASS);
+	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
+	Miku->setPosition(XMFLOAT3(-2.5, 0, 0));
+
+	MikuShadow = new CMainchar(DrawingType::shadow, 12);
+	MikuShadow->Init(m_pD3d->m_pDevice, MIKU, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)MIKU_PASS);
 
 
+
+	//ステージ
 	stage = new CPmx(DrawingType::object);
 
 	stage->Init(m_pD3d->m_pDevice, STAGE, SHADER_SKYDOME_NAME, NULL, SHADER_SKYDOME_NAME, (char*)STAGE_PASS);
@@ -168,12 +181,29 @@ HRESULT Director::Init()
 
 
 	//VMD
-	dance->LoadVmdFile((char*)DANCE, FreChan->DeliverBones(), FreChan->DeliverPmdIkData(), true);
-	dance2->LoadVmdFile((char*)DANCE, Kanade->DeliverBones(), Kanade->DeliverPmdIkData(), true);
+	FrechanDance->LoadVmdFile((char*)ONESHIN, FreChan->DeliverBones(), FreChan->DeliverPmdIkData(), true);
+	KanadeDance->LoadVmdFile((char*)LOVELETTER, Kanade->DeliverBones(), Kanade->DeliverPmdIkData(), true);
+	AiDance->LoadVmdFile((char*)GOKURAKUJOUDO, Ai->DeliverBones(), Ai->DeliverPmdIkData(), true);
+	MikuDance->LoadVmdFile((char*)YUKISUKI, Miku->DeliverBones(), Miku->DeliverPmdIkData(), true);
+	
+	//ロードしてきたVMDを輪郭線に同期させる　（後　VMDのUpdateだけで同期される）
+	FreChanShadow->SetBone(FreChan->DeliverBones());
+	KanadeShadow->SetBone(Kanade->DeliverBones());
+	AiShadow->SetBone(Ai->DeliverBones());
+	MikuShadow->SetBone(Miku->DeliverBones());
 
-	//モーションセット
-	FreChan->SetMotion(dance);
-	Kanade->SetMotion(dance2);
+	//モーションセット 
+	FreChan->SetMotion(FrechanDance);
+	FreChanShadow->SetMotion(FrechanDance);
+
+	Kanade->SetMotion(KanadeDance);
+	KanadeShadow->SetMotion(KanadeDance);
+
+	Ai->SetMotion(AiDance);
+	AiShadow->SetMotion(AiDance);
+
+	Miku->SetMotion(MikuDance);
+	MikuShadow->SetMotion(MikuDance);
 	//11/10 init ok 他もしましょう
 
 	/*fbxの読み込み*/
@@ -212,29 +242,42 @@ void Director::Draw()
 
 	//キャラクター
 
-	/*FreChanShadow->setPosition(FreChan->getPosition());
+	FreChanShadow->setPosition(FreChan->getPosition());
 	FreChanShadow->setRotetation(FreChan->getRotetation());
-	FreChanShadow->charDraw();*/
+	FreChanShadow->charDraw();
 	FreChan->charDraw();
 
-	/*KanadeShadow->setPosition(Kanade->getPosition());
+	KanadeShadow->setPosition(Kanade->getPosition());
 	KanadeShadow->setRotetation(Kanade->getRotetation());
-	KanadeShadow->charDraw();*/
+	KanadeShadow->charDraw();
 	Kanade->charDraw();
+
+	AiShadow->setPosition(Ai->getPosition());
+	AiShadow->setRotetation(Ai->getRotetation());
+	AiShadow->charDraw();
+	Ai->charDraw();
+
+	MikuShadow->setPosition(Miku->getPosition());
+	MikuShadow->setRotetation(Miku->getRotetation());
+	MikuShadow->charDraw();
+	Miku->charDraw();
 }
 void Director::Update()
 {
-	//輪郭線に同期
-	/*FreChanShadow->SetBone(FreChan->DeliverBones());
-	FreChanShadow->SetPmdIKdata(FreChan->DeliverPmdIkData());*/
 
-	dance->AdvanceTime();
-	dance->UpdateBoneMatrix();
+	FrechanDance->AdvanceTime();
+	FrechanDance->UpdateBoneMatrix();
 
-	dance2->AdvanceTime();
-	dance2->UpdateBoneMatrix();
+	KanadeDance->AdvanceTime();
+	KanadeDance->UpdateBoneMatrix();
 
+	AiDance->AdvanceTime();
+	AiDance->UpdateBoneMatrix();
 
+	MikuDance->AdvanceTime();
+	MikuDance->UpdateBoneMatrix();
+
+	
 }
 void Director::TitleInitShader()
 {
