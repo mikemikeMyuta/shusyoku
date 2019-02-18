@@ -41,29 +41,71 @@ void Camera::SetCameraPositionGaze(float x, float y, float z, float gx, float gy
 void Camera::move()
 {
 
-	////エラー　カメラ11/14 　（11/15追記)カメラの挙動がおかしいかもな
-	//if (GetKeyboardPress(DIK_LEFTARROW))
-	//{
-	//	rad.y--;
-	//}
-	//else if (GetKeyboardPress(DIK_RIGHTARROW))
-	//{
-	//	rad.y++;
+	//エラー　カメラ11/14 　（11/15追記)カメラの挙動がおかしいかもな
+	//fixed(2/18):これ注視点があるからです 
+	
 
-	//}
-	//if (GetKeyboardPress(DIK_UPARROW))
-	//{
-	//	rad.x++;
-	//}
-	//else if (GetKeyboardPress(DIK_DOWNARROW))
-	//{
-	//	rad.x--;
-	//}
+	//カメラの位置
+	
+	//横向き
+	if (GetKeyboardPress(DIK_LEFTARROW))
+	{
+		m_f.x-= 0.1f;
+	}
+	else if (GetKeyboardPress(DIK_RIGHTARROW))
+	{
+		m_f.x+= 0.1f;
 
-	//rad.y++;
+	}
+
+	//縦向き
+	if (GetKeyboardPress(DIK_UPARROW))
+	{
+		m_f.y+= 0.1f;
+	}
+	else if (GetKeyboardPress(DIK_DOWNARROW))
+	{
+		m_f.y-= 0.1f;
+	}
 
 
-	m_fG = XMFLOAT3(0, 10, 0);
+	if (GetKeyboardPress(DIK_RSHIFT))
+	{
+		m_f.z+= 0.1f;
+	}
+	else if (GetKeyboardPress(DIK_RCONTROL))
+	{
+		m_f.z-= 0.1f;
+
+	}
+
+	//注視点
+	if (GetKeyboardPress(DIK_S))
+	{
+		m_fG.y-=0.1f;
+	}
+	else if (GetKeyboardPress(DIK_W))
+	{
+		m_fG.y+= 0.1f;
+	}
+	
+	if (GetKeyboardPress(DIK_A))
+	{
+		m_fG.x-= 0.1f;
+	}
+	else if (GetKeyboardPress(DIK_D))
+	{
+		m_fG.x+= 0.1f;
+	}
+
+	if (GetKeyboardPress(DIK_Q))
+	{
+		m_fG.z -= 0.1f;
+	}
+	else if (GetKeyboardPress(DIK_Z))
+	{
+		m_fG.z += 0.1f;
+	}
 	m_boGaze = true;
 	SetViewProj();
 }
@@ -97,7 +139,7 @@ HRESULT Camera::SetViewProj()
 		keeper[1] = XMMatrixRotationY(XMConvertToRadians(rad.y));
 		keeper[2] = XMMatrixRotationZ(XMConvertToRadians(rad.z));
 
-		m_mView = keeper[0] * keeper[1] * keeper[2] * m_mView;
+		m_mView = m_mView*keeper[0] * keeper[1] * keeper[2];
 	}
 	//m_boGaze = false;
 	// プロジェクション

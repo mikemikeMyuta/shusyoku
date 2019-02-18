@@ -20,6 +20,14 @@ Director::~Director()
 	SAFE_DELETE(m_pWindow);
 	UninitInput();
 	ImGui_ImplDX11_Shutdown();
+
+	//ダンス
+	SAFE_DELETE(FrechanDance);
+	SAFE_DELETE(KanadeDance);
+	SAFE_DELETE(AiDance);
+	SAFE_DELETE(MikuDance);
+
+
 	/*SAFE_DELETE(m_pSound);*/
 }
 
@@ -64,26 +72,18 @@ void Director::RenderRoom()
 void Director::MainLoop()
 {
 	m_pD3d->Clear();
-	Update();
+	
 	switch (m_Scene)
 	{
 	case TITLE:
 		if (GetKeyboardPress(DIK_RETURN))
 		{
-			//m_pD3d->InitShader();
 			m_Scene = GAMEMAIN;
 		}
-		titleRender();
+		//titleRender();
 		break;
 	case GAMEMAIN:
-
-#ifdef _DEBUG
-		if (GetKeyboardPress(DIK_BACK))
-		{
-			//m_pD3d->InitShader();
-			m_Scene = TITLE;
-		}
-#endif
+		Update();
 		Draw();
 		RenderRoom();
 		break;
@@ -123,7 +123,7 @@ HRESULT Director::Init()
 	//camera
 	m_pCamera = new Camera;
 	m_pCamera->Init(WINDOW_WIDTH, WINDOW_HEIGHT);
-	m_pCamera->SetCameraPositionGaze(0.0f, 10, -20, 0, 0, 0);
+	m_pCamera->SetCameraPositionGaze(0.0f, 10, -20, 0, 10, 0);
 
 	////Sound(XAuido2)
 	//m_pSound = new SOUND;
@@ -154,13 +154,13 @@ HRESULT Director::Init()
 	KanadeShadow->Init(m_pD3d->m_pDevice, KANADE, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)KANADE_PASS);
 
 	//雛鶴愛
-	Ai = new CMainchar(DrawingType::player, 2);
+	Ai = new CMainchar(DrawingType::player, 0);
 	Ai->Init(m_pD3d->m_pDevice, AI, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)AI_PASS);
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
 	Ai->setPosition(XMFLOAT3(10, 0, 0));
 
-	AiShadow = new CMainchar(DrawingType::shadow, 2);
-	AiShadow->Init(m_pD3d->m_pDevice, AI, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)AI_PASS);
+	AiShadow = new CMainchar(DrawingType::shadow, 0);
+	AiShadow->Init(m_pD3d->m_pDevice, AI, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)AI_PASS);
 
 	//ミク
 	Miku = new CMainchar(DrawingType::player, 12);
@@ -169,7 +169,7 @@ HRESULT Director::Init()
 	Miku->setPosition(XMFLOAT3(-2.5, 0, 0));
 
 	MikuShadow = new CMainchar(DrawingType::shadow, 12);
-	MikuShadow->Init(m_pD3d->m_pDevice, MIKU, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)MIKU_PASS);
+	MikuShadow->Init(m_pD3d->m_pDevice, MIKU, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)MIKU_PASS);
 
 
 
@@ -207,9 +207,8 @@ HRESULT Director::Init()
 	//11/10 init ok 他もしましょう
 
 	/*fbxの読み込み*/
-	TitleInitShader();
 	InitInput(m_hInstance, m_hWnd);
-
+	TitleInitShader();
 	//imgui
 	//ImGui_ImplDX11_Init(m_pWindow->m_hWnd, m_pD3d->m_pDevice, m_pD3d->m_pDeviceContext);
 	return S_OK;
