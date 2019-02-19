@@ -100,8 +100,10 @@ PS_OUT ps_main(VS_OUT input)
 	//colSpe = specular * pow(max(0, dot(N, H)), 10);
 
 	//ハーフランバート
-	colDif = ambient + diffuse;
-	colSpe = specular * s;
+	float4 Ambient = float4(1, 0.3f, 1, 1);
+	float4 Specular = float4(0, 1, 1, 1);
+	colDif = Ambient+ diffuse;
+	colSpe = Specular * s;
 
 	//(11/15)shader ok これに合うように作り替えるソース
 

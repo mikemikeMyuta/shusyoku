@@ -9,6 +9,7 @@
 #define SHADER_SKYDOME_NAME (L"shader/SkydomeShader.hlsl")
 #define SHADER_KOIN_NAME (L"shader/koin.hlsl")
 #define SHADER_SHADOW_NAME (L"shader/charcink.hlsl") 
+#define SHADER_POINT_LIGHT (L"shader/PointLight.hlsl") 
 
 //pixel shader 
 

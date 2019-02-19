@@ -67,6 +67,7 @@ void Director::RenderRoom()
 {
 	m_pD3d->m_pDeviceContext->PSSetSamplers(0, 1, &SampleLinear);
 	CPmx::Render(m_pD3d->m_pDeviceContext);
+	//light->Render(m_pD3d->m_pDeviceContext);
 }
 
 void Director::MainLoop()
@@ -207,6 +208,9 @@ HRESULT Director::Init()
 	//11/10 init ok ‘¼‚à‚µ‚Ü‚µ‚å‚¤
 
 	/*fbx‚Ì“Ç‚Ýž‚Ý*/
+
+	light = new CLight();
+	light->Init(m_pD3d->m_pDevice, m_pD3d->m_pDeviceContext, SHADER_POINT_LIGHT, NULL, SHADER_POINT_LIGHT);
 	InitInput(m_hInstance, m_hWnd);
 	TitleInitShader();
 	//imgui
@@ -260,6 +264,8 @@ void Director::Draw()
 	MikuShadow->setRotetation(Miku->getRotetation());
 	MikuShadow->charDraw();
 	Miku->charDraw();
+
+
 }
 void Director::Update()
 {

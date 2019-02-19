@@ -398,9 +398,9 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 	diffuse = new PMX_VERTEX_USE_FLOAT4[m_pmx_data.s_PmxVertexNum];
 	for (int i = 0; i < m_pmx_data.s_PmxMaterialNum; i++)
 	{
-		ambient[i].data.x = m_pmx_data.s_pPmxMaterial[i].Ambient[0];
-		ambient[i].data.y = m_pmx_data.s_pPmxMaterial[i].Ambient[1];
-		ambient[i].data.z = m_pmx_data.s_pPmxMaterial[i].Ambient[2];
+		ambient[i].data.x = 0.6f;
+		ambient[i].data.y = 0.45f;
+		ambient[i].data.z = 0.8f;
 		ambient[i].data.w = 1;
 
 
@@ -554,8 +554,8 @@ void CPmx::ProcessingCalc()
 
 	XMMATRIX objectPos = XMMatrixTranslation(Position.x, Position.y, Position.z);
 
-	XMFLOAT3 light_dir = XMFLOAT3(1, 1, 0);
-	XMFLOAT3 camerapos = XMFLOAT3(0.0f, 10, -14);//仮置き (11/15現在)→解除待ち
+	XMFLOAT3 light_dir = XMFLOAT3(-10, 40, 20);
+	XMFLOAT3 camerapos = XMFLOAT3(10.0f, -50, 30);//仮置き (11/15現在)→解除待ち
 
 	//11/10　コンスタンスバッファ別で作成
 
@@ -743,7 +743,7 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 	if (VertexBufferUpdate == NULL) {
 		VertexBufferUpdate = new PMX_SEND_DATA[m_pmx_data.s_PmxVertexNum];
 
-	
+
 
 
 		for (int i = 0; i < m_pmx_data.s_PmxVertexNum; i++)
@@ -822,7 +822,7 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 	for (int i = 0; i < m_pmx_data.s_pPmxMorph[MorphNum].DataNum; i++)
 	{
 
-	
+
 		//計算するやつ
 		XMVECTOR q1, q2, ans;
 		FLOAT ansFloat;

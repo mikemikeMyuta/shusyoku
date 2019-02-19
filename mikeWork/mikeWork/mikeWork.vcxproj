@@ -170,6 +170,7 @@
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="imgui\imgui_impl_dx11.cpp" />
     <ClCompile Include="imgui\misc\freetype\imgui_freetype.cpp" />
+    <ClCompile Include="Light\CLight.cpp" />
     <ClCompile Include="PMX\CPmx.cpp" />
     <ClCompile Include="PMX\PmxLoad.cpp" />
     <ClCompile Include="PMX\VMD.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="imgui\stb_rect_pack.h" />
     <ClInclude Include="imgui\stb_textedit.h" />
     <ClInclude Include="imgui\stb_truetype.h" />
+    <ClInclude Include="Light\CLight.h" />
     <ClInclude Include="passController\PassController.h" />
     <ClInclude Include="PMX\CPmx.h" />
     <ClInclude Include="PMX\Mmdstrcut.h" />
@@ -204,6 +206,14 @@
     <ClInclude Include="shader\shaderList.h" />
     <ClInclude Include="PMX\StaticCalc.h" />
     <ClInclude Include="WINDOW\CreateWindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shader\PointLight.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

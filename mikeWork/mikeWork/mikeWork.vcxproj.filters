@@ -66,6 +66,9 @@
     <ClCompile Include="imgui\imgui.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Light\CLight.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BASE\BASE.h">
@@ -152,5 +155,11 @@
     <ClInclude Include="imgui\misc\freetype\imgui_freetype.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Light\CLight.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shader\PointLight.hlsl" />
   </ItemGroup>
 </Project>

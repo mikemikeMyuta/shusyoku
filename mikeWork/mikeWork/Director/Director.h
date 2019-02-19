@@ -8,6 +8,7 @@
 #include <d3dcompiler.h>
 #include "../PMX/motionList.h"
 #include "../imgui/imgui_impl_dx11.h"
+#include "../Light/CLight.h"
 
 
 #define TEX_SHADER_PASS (L"shader/texShader.hlsl")
@@ -79,6 +80,8 @@ public:
 	CMainchar *MikuShadow;
 
 	CPmx* stage;
+
+	CLight *light;
 
 	//VMD 
 	VmdMotionController *FrechanDance;

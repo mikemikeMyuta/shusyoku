@@ -117,7 +117,8 @@ PS_OUT ps_main(VS_OUT input)
 	//colSpe = specular * pow(max(0, dot(N, H)), 10);
 
 	//ハーフランバート
-	colDif = ambient + diffuse;
+
+	colDif = ambient;
 	colSpe = specular * s;
 
 	float2 toonUV;
