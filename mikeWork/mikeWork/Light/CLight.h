@@ -1,5 +1,7 @@
 #pragma once
 
+//Š®‘SÀ‘•‚Ü‚¾@ƒƒCƒ“‚É“ü‚ê‚Ä‚È‚¢‚Å‚·
+
 #include "../BASE/BASE.h"
 #include "../PMX/modelList.h"
 
