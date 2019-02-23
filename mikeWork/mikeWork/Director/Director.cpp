@@ -1,6 +1,7 @@
 #include "Director.h"
 #include "../PMX/modelList.h"
 #include "../shader/shaderList.h"
+#include "../imgui/CImguiMine.h"
 
 Director::Director()
 {
@@ -9,7 +10,7 @@ Director::Director()
 	KanadeDance = new VmdMotionController();
 	AiDance = new VmdMotionController();
 	MikuDance = new VmdMotionController();
-
+	IMGUIDrawdata::create();
 	m_Scene = GAMEMAIN;
 }
 
@@ -19,7 +20,7 @@ Director::~Director()
 	SAFE_DELETE(m_pD3d);
 	SAFE_DELETE(m_pWindow);
 	UninitInput();
-	ImGui_ImplDX11_Shutdown();
+	
 
 	//ダンス
 	SAFE_DELETE(FrechanDance);
@@ -27,6 +28,8 @@ Director::~Director()
 	SAFE_DELETE(AiDance);
 	SAFE_DELETE(MikuDance);
 
+	ImGui_ImplDX11_Shutdown();
+	IMGUIDrawdata::destroy();
 
 	/*SAFE_DELETE(m_pSound);*/
 }
@@ -45,9 +48,12 @@ void Director::Run(HINSTANCE hInstance)
 	}
 	ShowWindow(m_hWnd, SW_SHOW);
 	UpdateWindow(m_hWnd);
+
 	// メッセージループ
 	MSG msg = { 0 };
 	ZeroMemory(&msg, sizeof(msg));
+
+	
 	while (msg.message != WM_QUIT)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -92,6 +98,7 @@ void Director::MainLoop()
 		break;
 	}
 	m_pCamera->move();
+	
 	FixFPS60();
 	m_pD3d->Present();
 	UpdateInput();
@@ -209,18 +216,19 @@ HRESULT Director::Init()
 
 	/*fbxの読み込み*/
 
-	light = new CLight();
-	light->Init(m_pD3d->m_pDevice, m_pD3d->m_pDeviceContext, SHADER_POINT_LIGHT, NULL, SHADER_POINT_LIGHT);
-	InitInput(m_hInstance, m_hWnd);
+	/*light = new CLight();
+	light->Init(m_pD3d->m_pDevice, m_pD3d->m_pDeviceContext, SHADER_POINT_LIGHT, NULL, SHADER_POINT_LIGHT);*/
+	InitInput(m_hInstance, m_pD3d->m_hWnd);
 	TitleInitShader();
 	//imgui
-	//ImGui_ImplDX11_Init(m_pWindow->m_hWnd, m_pD3d->m_pDevice, m_pD3d->m_pDeviceContext);
+	ImGui::CreateContext();//これないとエラー出るよ！ getIOで
+ 	ImGui_ImplDX11_Init(m_pD3d->m_hWnd, m_pD3d->m_pDevice, m_pD3d->m_pDeviceContext);
 	return S_OK;
 }
 
 void Director::FixFPS60()
 {
-	static INT Frames = 0, FPS = 0;
+	static INT Frames = 0;
 	static LARGE_INTEGER Frq = { 0 }, PreviousTime = { 0 }, CurrentTime = { 0 };
 	DOUBLE Time = 0;
 	char sz[11] = { 0 };
@@ -232,6 +240,7 @@ void Director::FixFPS60()
 		QueryPerformanceCounter(&CurrentTime);
 		Time = CurrentTime.QuadPart - PreviousTime.QuadPart;
 		Time *= (DOUBLE)1100.0 / (DOUBLE)Frq.QuadPart;
+		IMGUIDrawdata::get_instance()->setFPS(Time);
 	}
 	PreviousTime = CurrentTime;
 }
@@ -241,31 +250,32 @@ void Director::Draw()
 
 	//stage
 
-	stage->ProcessingCalc();
+	stage->ProcessingCalc(m_pCamera->m_f);
 
 	//キャラクター
 
 	FreChanShadow->setPosition(FreChan->getPosition());
 	FreChanShadow->setRotetation(FreChan->getRotetation());
-	FreChanShadow->charDraw();
-	FreChan->charDraw();
+	FreChanShadow->charDraw(m_pCamera->m_f);
+	FreChan->charDraw(m_pCamera->m_f);
 
 	KanadeShadow->setPosition(Kanade->getPosition());
 	KanadeShadow->setRotetation(Kanade->getRotetation());
-	KanadeShadow->charDraw();
-	Kanade->charDraw();
+	KanadeShadow->charDraw(m_pCamera->m_f);
+	Kanade->charDraw(m_pCamera->m_f);
 
 	AiShadow->setPosition(Ai->getPosition());
 	AiShadow->setRotetation(Ai->getRotetation());
-	AiShadow->charDraw();
-	Ai->charDraw();
+	AiShadow->charDraw(m_pCamera->m_f);
+	Ai->charDraw(m_pCamera->m_f);
 
 	MikuShadow->setPosition(Miku->getPosition());
 	MikuShadow->setRotetation(Miku->getRotetation());
-	MikuShadow->charDraw();
-	Miku->charDraw();
+	MikuShadow->charDraw(m_pCamera->m_f);
+	Miku->charDraw(m_pCamera->m_f);
 
-
+	
+	IMGUIDrawdata::get_instance()->Draw();
 }
 void Director::Update()
 {

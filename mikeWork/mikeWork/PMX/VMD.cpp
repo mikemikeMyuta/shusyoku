@@ -1,4 +1,5 @@
 #include "VMD.h"
+#include "../GameMain/GameUse/input.h"
 
 using namespace std;
 
@@ -294,6 +295,17 @@ void VmdMotionController::UpdateIK(const MmdStruct::PmdIkData& ikData) {
 }
 
 void VmdMotionController::AdvanceTime() {
-	time ++;
+
+	if (IMGUIDrawdata::get_instance()->getAnimationSpeed() == 0 && IMGUIDrawdata::get_instance()->getFrameAdvance())
+	{
+		if (GetKeyboardPress(DIK_SPACE))
+		{
+			time++;
+		}
+	}
+	else
+	{
+		time += IMGUIDrawdata::get_instance()->getAnimationSpeed();
+	}
 }
 

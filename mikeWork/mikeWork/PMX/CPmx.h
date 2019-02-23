@@ -138,7 +138,7 @@ public:
 
 	//11/15　真ん中求める処理がいるかも　注視点的な意味で　（追記　11/27）いる？
 
-	void ProcessingCalc();//描画の計算処理とコンスタンスバッファ作成　そのままDrawを呼び出す。 DrawingType mean selecting mainchar or other 
+	void ProcessingCalc(XMFLOAT3);//描画の計算処理とコンスタンスバッファ作成　そのままDrawを呼び出す。 DrawingType mean selecting mainchar or other 
 
 	static map<LPCSTR, PMX_DATA> RetrievalData;//addするときに必要ならロード必要ないならそのデータを受け渡しするために検索するためのデータ
 	static deque<DrawingAllDataObject> RenderingDataObject;//描画するときに使用

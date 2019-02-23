@@ -5,7 +5,7 @@ class CMainchar :public CPmx
 {
 public:
 	void move();
-	void charDraw();
+	void charDraw(XMFLOAT3);
 
 	CMainchar(DrawingType type):CPmx(type)
 	{

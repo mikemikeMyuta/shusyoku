@@ -540,7 +540,7 @@ void CPmx::switchColling(ID3D11Device *dev)
 	dev->CreateRasterizerState(&rdc, &IndiviData->pRasterizerState);
 }
 
-void CPmx::ProcessingCalc()
+void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 {
 	XMMATRIX rotemat;//回転用行列
 	XMMATRIX keepMat;//逆行列を格納
@@ -554,8 +554,8 @@ void CPmx::ProcessingCalc()
 
 	XMMATRIX objectPos = XMMatrixTranslation(Position.x, Position.y, Position.z);
 
-	XMFLOAT3 light_dir = XMFLOAT3(-10, 40, 20);
-	XMFLOAT3 camerapos = XMFLOAT3(10.0f, -50, 30);//仮置き (11/15現在)→解除待ち
+	XMFLOAT3 light_dir = IMGUIDrawdata::get_instance()->getLightDir();
+	XMFLOAT3 camerapos = cameraPos;//仮置き (11/15現在)→解除待ち
 
 	//11/10　コンスタンスバッファ別で作成
 

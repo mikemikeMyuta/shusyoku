@@ -27,3 +27,4 @@ IMGUI_API bool        ImGui_ImplDX11_CreateDeviceObjects();
 /*
 IMGUI_API LRESULT   ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 */
+

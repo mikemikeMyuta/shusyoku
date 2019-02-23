@@ -57,7 +57,7 @@ VS_OUT vs_main(VS_IN input)
 		comb += BoneMatrix[input.BoneIndex[i]] * input.BoneWeight[i];
 	}
 	//座標変換
-	output.pos = mul(float4(input.pos,1), comb);
+	output.pos = mul(float4(input.pos, 1), comb);
 
 	output.pos = mul(output.pos, World);
 	output.pospass = output.pos.xyz;
@@ -110,7 +110,7 @@ PS_OUT ps_main(VS_OUT input)
 	float4 colDif;
 	float4 colSpe;
 
-	float s = pow(max(0, dot(N, H)), 30);
+	float s = pow(max(0, dot(N, H)), 5);
 
 	//ランバート
 	//colDif = ambient + diffuse * max(0.0, dotD);
@@ -119,6 +119,7 @@ PS_OUT ps_main(VS_OUT input)
 	//ハーフランバート
 
 	colDif = ambient;
+	float4 Specular = float4(1, 1, 1, 0.2f);
 	colSpe = specular * s;
 
 	float2 toonUV;

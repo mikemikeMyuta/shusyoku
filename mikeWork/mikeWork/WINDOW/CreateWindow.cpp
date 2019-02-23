@@ -1,7 +1,9 @@
 #include "CreateWindow.h"
+#include "../Director/Director.h"
 
 Window* g_pWindow = NULL;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
 //
 //
 //
@@ -47,6 +49,8 @@ HRESULT Window::InitWindow(HINSTANCE hInstance,
 //
 LRESULT Window::MsgProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
+	ImGui_ImplWin32_WndProcHandler(hWnd, iMsg, wParam, lParam);
+	
 	switch (iMsg)
 	{
 	case WM_KEYDOWN:

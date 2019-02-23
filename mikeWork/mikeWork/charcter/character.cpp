@@ -23,9 +23,9 @@ void CMainchar::move()
 	}*/
 }
 
-void CMainchar::charDraw()
+void CMainchar::charDraw(XMFLOAT3 lightDir)
 {
 	move();
-	ProcessingCalc();
+	ProcessingCalc(lightDir);
 	Position = XMFLOAT3(0, 0, 0);
 }

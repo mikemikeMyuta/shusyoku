@@ -166,6 +166,7 @@
     <ClCompile Include="GameMain\GameUse\input.cpp" />
     <ClCompile Include="GameMain\GameUse\stageHit.cpp" />
     <ClCompile Include="GameMain\main.cpp" />
+    <ClCompile Include="imgui\CImguiMine.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="imgui\imgui_impl_dx11.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="GameMain\GameUse\collision.h" />
     <ClInclude Include="GameMain\GameUse\input.h" />
     <ClInclude Include="GameMain\GameUse\stageHit.h" />
+    <ClInclude Include="imgui\CImguiMine.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_impl_dx11.h" />

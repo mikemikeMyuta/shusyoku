@@ -645,7 +645,7 @@ void ImGui_ImplDX11_NewFrame()
     RECT rect;
     GetClientRect(g_hWnd, &rect);
     io.DisplaySize = ImVec2((float)(rect.right - rect.left), (float)(rect.bottom - rect.top));
-
+	io.DisplaySize = ImVec2(1920, 1080);//’Ç‰Á
     // Setup time step
     INT64 current_time;
     QueryPerformanceCounter((LARGE_INTEGER *)&current_time);

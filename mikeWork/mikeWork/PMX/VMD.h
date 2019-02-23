@@ -4,6 +4,7 @@
 #include "Mmdstrcut.h"
 #include "SkinMeshStruct.h"
 #include "StaticCalc.h"
+#include "../imgui/CImguiMine.h"
 
 #include <list>
 #include <iostream>

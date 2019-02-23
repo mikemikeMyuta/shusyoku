@@ -14,6 +14,10 @@
 #define TEX_SHADER_PASS (L"shader/texShader.hlsl")
 #define TEX_PASS (L"asset/TEX/ssr3040027000_02.png")
 
+//これをここで定義してマウスも使えるようにしている
+IMGUI_API LRESULT   ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+
 //頂点の構造体
 class VECTOR3
 {

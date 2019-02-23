@@ -40,8 +40,9 @@ HRESULT DIRECT3D11::Init(D3D_INIT* pcd)
 	D3D_FEATURE_LEVEL pFeatureLevels = D3D_FEATURE_LEVEL_11_0;
 
 	UINT cdev_flag = 0;
+#ifdef _Debug
 	cdev_flag |= D3D11_CREATE_DEVICE_DEBUG; // çXêVÇµÇƒâèúÇµÇƒÇ®Ç≠
-
+#endif
 	if (FAILED(D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL,
 		cdev_flag, &pFeatureLevels, 1, D3D11_SDK_VERSION, &sd, &m_pSwapChain, &m_pDevice,
 		NULL, &m_pDeviceContext)))
