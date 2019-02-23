@@ -171,6 +171,7 @@
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="imgui\imgui_impl_dx11.cpp" />
     <ClCompile Include="imgui\misc\freetype\imgui_freetype.cpp" />
+    <ClCompile Include="imgui\staticDeclaration.cpp" />
     <ClCompile Include="Light\CLight.cpp" />
     <ClCompile Include="PMX\CPmx.cpp" />
     <ClCompile Include="PMX\PmxLoad.cpp" />

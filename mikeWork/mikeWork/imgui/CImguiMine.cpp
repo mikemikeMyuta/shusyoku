@@ -2,37 +2,57 @@
 #include "imgui_impl_dx11.h"
 
 
-IMGUIDrawdata* IMGUIDrawdata::instance;
-int IMGUIDrawdata::animationSpeed;//アニメーション速度一括管理
-bool IMGUIDrawdata::show_another_window;
-bool IMGUIDrawdata::FrameAdvance = true;//止まっているときに進めるために使う
-float IMGUIDrawdata::FPS;
-DirectX::XMFLOAT3 IMGUIDrawdata::lightDir = DirectX::XMFLOAT3(0, 10, -20);
 
 void IMGUIDrawdata::Draw()
 {
 	ImGui_ImplDX11_NewFrame();
 	//大きさ場所設定
-	ImGui::SetNextWindowSize(ImVec2(500, 300), ImGuiSetCond_Once);
-	ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiSetCond_Once);
+	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Once);
 
 	//設定
 
 	ImGui::Begin("operation", &show_another_window);
 
-	ImGui::LabelText("", "%4.2f ms", FPS);
+	ImGui::LabelText("", "%4.2f FPS", FPS);
+	ImGui::Spacing();
+	ImGui::LabelText("cameraPos", "X:%4.2f  Y:%4.2f  Z:%4.2f", cameraPos.x, cameraPos.y, cameraPos.z);
+	ImGui::LabelText("cameraGaze", "X:%4.2f  Y:%4.2f  Z:%4.2f", cameraGaze.x, cameraGaze.y, cameraGaze.z);
 	ImGui::Spacing();
 
-	ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Once);
+	ImGui::SetNextTreeNodeOpen(false, ImGuiSetCond_Once);
 	if (ImGui::CollapsingHeader("character"))
 	{
-		ImGui::SliderInt("AnimationSpeed", &animationSpeed, 0.0f, 1.0f);
-		ImGui::Checkbox("FrameAdvanceFlag", &FrameAdvance);
-		if (ImGui::TreeNode("LightSeting"))
+
+		if (ImGui::TreeNode("Animation\n\n"))
 		{
-			ImGui::SliderFloat("lightDir:Xpos", &lightDir.x, -100.0f, 100.0f);
-			ImGui::SliderFloat("lightDir:Ypos", &lightDir.y, -100.0f, 100.0f);
-			ImGui::SliderFloat("lightDir:Zpos", &lightDir.z, -100.0f, 100.0f);
+			ImGui::SliderInt("\n\nAnimationSpeed", &animationSpeed, 0.0f, 1.0f);
+			ImGui::Checkbox("\n\nFrameAdvanceFlag", &FrameAdvance);
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("LightSeting\n\n"))
+		{
+			ImGui::SliderFloat("\n\nlightDir:Xpos", &lightDir.x, -100.0f, 100.0f);
+			ImGui::SliderFloat("\n\nlightDir:Ypos", &lightDir.y, -100.0f, 100.0f);
+			ImGui::SliderFloat("\n\nlightDir:Zpos", &lightDir.z, -100.0f, 100.0f);
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("Morph\n\n"))
+		{
+
+			ImGui::SliderInt("char1:MorphNum\n\n", &MorphNum[0], 0, MorphMAXIndex[0]);
+			ImGui::Checkbox("char1:MorphFlag\n\n", &MorphFlag[0]);
+
+			ImGui::SliderInt("char2:MorphNum\n\n", &MorphNum[1], 0, MorphMAXIndex[1]);
+			ImGui::Checkbox("char2:MorphFlag\n\n", &MorphFlag[1]);
+
+			ImGui::SliderInt("char3:MorphNum\n\n", &MorphNum[2], 0, MorphMAXIndex[2]);
+			ImGui::Checkbox("char3:MorphFlag\n\n", &MorphFlag[2]);
+
+			ImGui::SliderInt("char4:MorphNum\n\n", &MorphNum[3], 0, MorphMAXIndex[3]);
+			ImGui::Checkbox("char4:MorphFlag\n\n", &MorphFlag[3]);
 			ImGui::TreePop();
 		}
 	}

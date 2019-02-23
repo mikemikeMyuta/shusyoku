@@ -9,6 +9,8 @@ deque<DrawingAllDataShadow> CPmx::RenderingDataShadow;
 ID3D11ShaderResourceView* CPmx::m_ClearTex;
 ID3D11ShaderResourceView* CPmx::m_ClearTex2;
 
+static UINT MorphNumdata = 0;
+
 void CPmx::Render(ID3D11DeviceContext *context)
 {
 	//レンダリング処理をみてやりましょうか
@@ -519,6 +521,12 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 			return;
 		}
 	}
+	if (type == DrawingType::player) {
+		IMGUIDrawdata::get_instance()->setMorphNum(MorphNum, MorphNumdata);
+		IMGUIDrawdata::get_instance()->setMorphMaxIndex(m_pmx_data.s_PmxMorphNum, MorphNumdata);
+		WorldMorphNum = MorphNumdata;
+		MorphNumdata++;
+	}
 }
 
 void CPmx::switchColling(ID3D11Device *dev)
@@ -555,7 +563,7 @@ void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 	XMMATRIX objectPos = XMMatrixTranslation(Position.x, Position.y, Position.z);
 
 	XMFLOAT3 light_dir = IMGUIDrawdata::get_instance()->getLightDir();
-	XMFLOAT3 camerapos = cameraPos;//仮置き (11/15現在)→解除待ち
+	XMFLOAT3 camerapos = cameraPos;//仮置き (11/15現在)→解除待ち fixed:2/23
 
 	//11/10　コンスタンスバッファ別で作成
 
@@ -743,9 +751,6 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 	if (VertexBufferUpdate == NULL) {
 		VertexBufferUpdate = new PMX_SEND_DATA[m_pmx_data.s_PmxVertexNum];
 
-
-
-
 		for (int i = 0; i < m_pmx_data.s_PmxVertexNum; i++)
 		{
 
@@ -796,81 +801,84 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 			VertexBufferUpdate[i].boneWeight[2] = m_pmx_data.s_pPmxVertex[i].BoneWeight[2];
 			VertexBufferUpdate[i].boneWeight[3] = m_pmx_data.s_pPmxVertex[i].BoneWeight[3];
 
-
 		}
 	}
-
-	//モーフ計算
-	static FLOAT timeMorph;//現在時間
-	static FLOAT timedif;//時間差
-	static BOOL MorphState = true;//どっちの状態か trueが通常
-
-	if (timeMorph > 1 && !MorphState)
+	if (IMGUIDrawdata::get_instance()->getMorphFlag(WorldMorphNum))//更新しなくなる 
 	{
-		MorphState = true;
-		timedif = -0.01;//ここ可変だといいね
-	}
-	else if (timeMorph <= 0 && MorphState)
-	{
-		MorphState = false;
-		timedif = +0.01;
-	}
-	timeMorph += timedif;
+		//モーフ番号更新
+		MorphNum = IMGUIDrawdata::get_instance()->getMorphNum(WorldMorphNum);
+
+		//モーフ計算
+		static FLOAT timeMorph;//現在時間
+		static FLOAT timedif;//時間差
+		static BOOL MorphState = true;//どっちの状態か trueが通常
+
+		if (timeMorph > 1 && !MorphState)
+		{
+			MorphState = true;
+			timedif = -0.01;//ここ可変だといいね
+		}
+		else if (timeMorph <= 0 && MorphState)
+		{
+			MorphState = false;
+			timedif = +0.01;
+		}
+		timeMorph += timedif;
 
 
-	//モーフ設定
-	for (int i = 0; i < m_pmx_data.s_pPmxMorph[MorphNum].DataNum; i++)
-	{
+		//モーフ設定
+		for (int i = 0; i < m_pmx_data.s_pPmxMorph[MorphNum].DataNum; i++)
+		{
 
 
-		//計算するやつ
-		XMVECTOR q1, q2, ans;
-		FLOAT ansFloat;
-		FLOAT Work;
+			//計算するやつ
+			XMVECTOR q1, q2, ans;
+			FLOAT ansFloat;
+			FLOAT Work;
 
-		//X
-		float X = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[0];
-		q1 = XMLoadFloat(&X);
+			//X
+			float X = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[0];
+			q1 = XMLoadFloat(&X);
 
-		Work = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[0] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[0];
+			Work = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[0] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[0];
 
-		q2 = XMLoadFloat(&Work);
+			q2 = XMLoadFloat(&Work);
 
-		ans = XMVectorLerp(q1, q2, timeMorph);
+			ans = XMVectorLerp(q1, q2, timeMorph);
 
-		XMStoreFloat(&ansFloat, ans);
+			XMStoreFloat(&ansFloat, ans);
 
-		VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[0] = ansFloat;
+			VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[0] = ansFloat;
 
-		//Y
-		float Y = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[1];
-		q1 = XMLoadFloat(&Y);
+			//Y
+			float Y = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[1];
+			q1 = XMLoadFloat(&Y);
 
-		Work = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[1] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[1];
+			Work = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[1] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[1];
 
-		q2 = XMLoadFloat(&Work);
+			q2 = XMLoadFloat(&Work);
 
-		ans = XMVectorLerp(q1, q2, timeMorph);
+			ans = XMVectorLerp(q1, q2, timeMorph);
 
-		XMStoreFloat(&ansFloat, ans);
+			XMStoreFloat(&ansFloat, ans);
 
-		VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[1] = ansFloat;
+			VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[1] = ansFloat;
 
-		//Z
-		float Z = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[2];
-		q1 = XMLoadFloat(&Z);
+			//Z
+			float Z = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[2];
+			q1 = XMLoadFloat(&Z);
 
-		Work = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[2] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[2];
+			Work = MmdStruct::scale*m_pmx_data.s_pPmxVertex[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].Position[2] + m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Offset[2];
 
-		q2 = XMLoadFloat(&Work);
+			q2 = XMLoadFloat(&Work);
 
-		ans = XMVectorLerp(q1, q2, timeMorph);
+			ans = XMVectorLerp(q1, q2, timeMorph);
 
-		XMStoreFloat(&ansFloat, ans);
+			XMStoreFloat(&ansFloat, ans);
 
-		VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[2] = ansFloat;
+			VertexBufferUpdate[m_pmx_data.s_pPmxMorph[MorphNum].Vertex[i].Index].pos[2] = ansFloat;
 
-
+		}
 	}
 
 	return worlds;

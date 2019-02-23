@@ -152,6 +152,7 @@ public:
 
 
 	UINT MorphNum;//モーフナンバー格納
+	UINT WorldMorphNum;//モーフナンバー格納
 
 
 	//drawを変える 11/9　clear (11/9)

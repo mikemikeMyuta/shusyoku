@@ -4,6 +4,8 @@
 #include "../Configuration/ConfigurationDirectX11.h"
 
 
+
+
 class Camera
 {
 public:

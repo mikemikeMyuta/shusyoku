@@ -72,6 +72,9 @@
     <ClCompile Include="imgui\CImguiMine.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="imgui\staticDeclaration.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BASE\BASE.h">

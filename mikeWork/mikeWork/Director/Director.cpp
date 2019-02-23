@@ -20,7 +20,7 @@ Director::~Director()
 	SAFE_DELETE(m_pD3d);
 	SAFE_DELETE(m_pWindow);
 	UninitInput();
-	
+
 
 	//ダンス
 	SAFE_DELETE(FrechanDance);
@@ -53,7 +53,7 @@ void Director::Run(HINSTANCE hInstance)
 	MSG msg = { 0 };
 	ZeroMemory(&msg, sizeof(msg));
 
-	
+
 	while (msg.message != WM_QUIT)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -79,7 +79,7 @@ void Director::RenderRoom()
 void Director::MainLoop()
 {
 	m_pD3d->Clear();
-	
+
 	switch (m_Scene)
 	{
 	case TITLE:
@@ -98,7 +98,7 @@ void Director::MainLoop()
 		break;
 	}
 	m_pCamera->move();
-	
+
 	FixFPS60();
 	m_pD3d->Present();
 	UpdateInput();
@@ -143,22 +143,22 @@ HRESULT Director::Init()
 	//init pmx
 
 	//フレデリカ
-	FreChan = new CMainchar(DrawingType::player,17);
+	FreChan = new CMainchar(DrawingType::player, 17);
 	FreChan->Init(m_pD3d->m_pDevice, FREDERICA, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)FREDERICA_PASS);
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
 	FreChan->setPosition(XMFLOAT3(3, 0, 0));
 
-	FreChanShadow = new CMainchar(DrawingType::shadow,17);
+	FreChanShadow = new CMainchar(DrawingType::shadow, 17);
 	FreChanShadow->Init(m_pD3d->m_pDevice, FREDERICA, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)FREDERICA_PASS);
 
 
 	//奏
-	Kanade = new CMainchar(DrawingType::player,16);
+	Kanade = new CMainchar(DrawingType::player, 16);
 	Kanade->Init(m_pD3d->m_pDevice, KANADE, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)KANADE_PASS);
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
 	Kanade->setPosition(XMFLOAT3(-10, 0, 0));
 
-	KanadeShadow = new CMainchar(DrawingType::shadow,16);
+	KanadeShadow = new CMainchar(DrawingType::shadow, 16);
 	KanadeShadow->Init(m_pD3d->m_pDevice, KANADE, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)KANADE_PASS);
 
 	//雛鶴愛
@@ -193,7 +193,7 @@ HRESULT Director::Init()
 	KanadeDance->LoadVmdFile((char*)LOVELETTER, Kanade->DeliverBones(), Kanade->DeliverPmdIkData(), true);
 	AiDance->LoadVmdFile((char*)GOKURAKUJOUDO, Ai->DeliverBones(), Ai->DeliverPmdIkData(), true);
 	MikuDance->LoadVmdFile((char*)YUKISUKI, Miku->DeliverBones(), Miku->DeliverPmdIkData(), true);
-	
+
 	//ロードしてきたVMDを輪郭線に同期させる　（後　VMDのUpdateだけで同期される）
 	FreChanShadow->SetBone(FreChan->DeliverBones());
 	KanadeShadow->SetBone(Kanade->DeliverBones());
@@ -222,7 +222,7 @@ HRESULT Director::Init()
 	TitleInitShader();
 	//imgui
 	ImGui::CreateContext();//これないとエラー出るよ！ getIOで
- 	ImGui_ImplDX11_Init(m_pD3d->m_hWnd, m_pD3d->m_pDevice, m_pD3d->m_pDeviceContext);
+	ImGui_ImplDX11_Init(m_pD3d->m_hWnd, m_pD3d->m_pDevice, m_pD3d->m_pDeviceContext);
 	return S_OK;
 }
 
@@ -240,7 +240,7 @@ void Director::FixFPS60()
 		QueryPerformanceCounter(&CurrentTime);
 		Time = CurrentTime.QuadPart - PreviousTime.QuadPart;
 		Time *= (DOUBLE)1100.0 / (DOUBLE)Frq.QuadPart;
-		IMGUIDrawdata::get_instance()->setFPS(Time);
+		IMGUIDrawdata::get_instance()->setFPS(1000 / Time);
 	}
 	PreviousTime = CurrentTime;
 }
@@ -274,25 +274,27 @@ void Director::Draw()
 	MikuShadow->charDraw(m_pCamera->m_f);
 	Miku->charDraw(m_pCamera->m_f);
 
-	
+
 	IMGUIDrawdata::get_instance()->Draw();
 }
 void Director::Update()
 {
-
-	FrechanDance->AdvanceTime();
-	FrechanDance->UpdateBoneMatrix();
-
-	KanadeDance->AdvanceTime();
-	KanadeDance->UpdateBoneMatrix();
-
-	AiDance->AdvanceTime();
-	AiDance->UpdateBoneMatrix();
-
-	MikuDance->AdvanceTime();
-	MikuDance->UpdateBoneMatrix();
-
 	
+
+	if (IMGUIDrawdata::get_instance()->getAnimationSpeed() == 1 || (GetKeyboardPress(DIK_SPACE) && IMGUIDrawdata::get_instance()->getFrameAdvance()))
+	{
+		//モーション時間更新
+		FrechanDance->AdvanceTime();
+		KanadeDance->AdvanceTime();
+		AiDance->AdvanceTime();
+		MikuDance->AdvanceTime();
+
+		FrechanDance->UpdateBoneMatrix();
+		KanadeDance->UpdateBoneMatrix();
+		AiDance->UpdateBoneMatrix();
+		MikuDance->UpdateBoneMatrix();
+	}
+
 }
 void Director::TitleInitShader()
 {

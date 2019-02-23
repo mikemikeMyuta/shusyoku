@@ -296,16 +296,6 @@ void VmdMotionController::UpdateIK(const MmdStruct::PmdIkData& ikData) {
 
 void VmdMotionController::AdvanceTime() {
 
-	if (IMGUIDrawdata::get_instance()->getAnimationSpeed() == 0 && IMGUIDrawdata::get_instance()->getFrameAdvance())
-	{
-		if (GetKeyboardPress(DIK_SPACE))
-		{
-			time++;
-		}
-	}
-	else
-	{
-		time += IMGUIDrawdata::get_instance()->getAnimationSpeed();
-	}
+	time += 1;
 }
 
