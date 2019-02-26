@@ -11,3 +11,4 @@ DirectX::XMFLOAT3 IMGUIDrawdata::cameraGaze;//ƒJƒƒ‰‚Ì’‹“_iimgui‚Å‚¢‚¶‚é‚Â‚à‚
 int IMGUIDrawdata::MorphNum[ANIMATION_CHAR_NUM];//ƒ‚[ƒt”Ô†Ši”[
 bool IMGUIDrawdata::MorphFlag[ANIMATION_CHAR_NUM] = { true,true ,true ,true };//ƒ‚[ƒtÀs‚·‚é‚©”Û‚©
 int IMGUIDrawdata::MorphMAXIndex[ANIMATION_CHAR_NUM];//ƒ‚[ƒt‚ÌÅ‘å”
+bool IMGUIDrawdata::ModelDisplay[ANIMATION_CHAR_NUM] = { true,true ,true ,true };//ƒ‚ƒfƒ‹‚ğ•\¦‚·‚é‚©

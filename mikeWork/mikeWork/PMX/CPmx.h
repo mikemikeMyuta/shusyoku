@@ -301,6 +301,7 @@ public:
 		delete &RenderingDataMain;
 		RenderingDataShadow.clear();
 		delete &RenderingDataMain;
+		delete VertexBufferUpdate;
 	}
 
 };

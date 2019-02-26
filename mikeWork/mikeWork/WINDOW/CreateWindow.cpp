@@ -32,13 +32,18 @@ HRESULT Window::InitWindow(HINSTANCE hInstance,
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	RegisterClassEx(&wc);
 	//ウィンドウの作成
-	m_hWnd = CreateWindow(WindowName, WindowName, WS_OVERLAPPEDWINDOW,
-		0, 0, iWidth, iHeight, 0, 0, hInstance, 0);
+	m_hWnd = CreateWindow(WindowName, WindowName, WS_DLGFRAME,
+		CW_USEDEFAULT,CW_USEDEFAULT, iWidth, iHeight, 0, 0, hInstance, 0);
 	if (!m_hWnd)
 	{
 		return E_FAIL;
 	}
-	//ウインドウの表示
+
+	// WS_CAPTION属性の設定
+	LONG lStyle;
+	lStyle = GetWindowLong(m_hWnd, GWL_STYLE);
+	lStyle &= ~WS_CAPTION;
+	lStyle = SetWindowLong(m_hWnd, GWL_STYLE, lStyle);
 	ShowWindow(m_hWnd, SW_SHOW);
 	UpdateWindow(m_hWnd);
 

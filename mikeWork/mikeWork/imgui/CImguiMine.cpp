@@ -7,7 +7,7 @@ void IMGUIDrawdata::Draw()
 {
 	ImGui_ImplDX11_NewFrame();
 	//ëÂÇ´Ç≥èÍèäê›íË
-	ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiSetCond_Once);
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Once);
 
 	//ê›íË
@@ -23,6 +23,18 @@ void IMGUIDrawdata::Draw()
 	ImGui::SetNextTreeNodeOpen(false, ImGuiSetCond_Once);
 	if (ImGui::CollapsingHeader("character"))
 	{
+		if (ImGui::TreeNode("modelDisplay\n\n"))
+		{
+			ImGui::Checkbox("\n\nchar1", &ModelDisplay[0]);
+
+			ImGui::Checkbox("\n\nchar2", &ModelDisplay[1]);
+
+			ImGui::Checkbox("\n\nchar3", &ModelDisplay[2]);
+
+			ImGui::Checkbox("\n\nchar4", &ModelDisplay[3]);
+
+			ImGui::TreePop();
+		}
 
 		if (ImGui::TreeNode("Animation\n\n"))
 		{

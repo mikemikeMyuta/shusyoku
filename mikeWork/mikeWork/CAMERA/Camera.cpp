@@ -112,27 +112,27 @@ void Camera::move()
 	if (GetKeyboardPress(DIK_1))//初期位置
 	{
 		m_f = XMFLOAT3(0.0f, 10, -20);
-		m_fG = XMFLOAT3(0.0f, 10, -19);
+		m_fG = XMFLOAT3(0.0f, 10, 0);
 	}
 	else if (GetKeyboardPress(DIK_2))//一番左キャラ
 	{
 		m_f = XMFLOAT3(-20.0f, 10, -10);
-		m_fG = XMFLOAT3(-20.0f, 10, -9);
+		m_fG = XMFLOAT3(-20.0f, 10, 0);
 	}
 	else if (GetKeyboardPress(DIK_3))//左から二番目
 	{
 		m_f = XMFLOAT3(-5.0f, 10, -10);
-		m_fG = XMFLOAT3(-5.0f, 10, -9);
+		m_fG = XMFLOAT3(-5.0f, 10,0);
 	}
 	else if (GetKeyboardPress(DIK_4))//左から三番目
 	{
 		m_f = XMFLOAT3(6.0f, 10, -10);
-		m_fG = XMFLOAT3(6.0f, 10, -9);
+		m_fG = XMFLOAT3(6.0f, 10, 0);
 	}
 	else if (GetKeyboardPress(DIK_5))//一番右
 	{
 		m_f = XMFLOAT3(20.0f, 10, -10);
-		m_fG = XMFLOAT3(20.0f, 10, -9);
+		m_fG = XMFLOAT3(20.0f, 10, 0);
 	}
 
 

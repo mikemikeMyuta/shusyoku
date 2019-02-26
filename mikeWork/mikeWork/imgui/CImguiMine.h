@@ -21,6 +21,8 @@ private:
 	static  int MorphNum[ANIMATION_CHAR_NUM];//モーフ番号格納
 	static bool MorphFlag[ANIMATION_CHAR_NUM];//モーフ実行するか否か
 	static  int MorphMAXIndex[ANIMATION_CHAR_NUM];//モーフの最大数
+	static  bool ModelDisplay[ANIMATION_CHAR_NUM];//モデルを表示するか
+
 public:
 	IMGUIDrawdata(const IMGUIDrawdata&) = delete;
 	IMGUIDrawdata& operator=(const IMGUIDrawdata&) = delete;
@@ -101,6 +103,11 @@ public:
 	static void setMorphMaxIndex(unsigned int data, unsigned int num)
 	{
 		MorphMAXIndex[num] = data;
+	}
+
+	static bool getModelDisplay(unsigned int num)
+	{
+		return ModelDisplay[num];
 	}
 
 	static void Draw();

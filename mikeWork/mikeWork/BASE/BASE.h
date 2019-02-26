@@ -13,11 +13,14 @@
 #pragma comment(lib,"d3dCompiler.lib")
 #pragma comment(lib,"winmm.lib")
 
+
+
 #ifdef _DEBUG
 #pragma comment(lib,"DirectXTex/DirectXTexD.lib")
 #else
 #pragma comment(lib,"DirectXTex/DirectXTex.lib")
 #endif
+
 
 #pragma warning(disable : 4305)
 #pragma warning(disable : 4996)

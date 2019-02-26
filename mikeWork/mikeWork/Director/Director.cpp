@@ -107,7 +107,7 @@ void Director::MainLoop()
 HRESULT Director::Init()
 {
 	//window
-	m_pWindow = new Window;
+	m_pWindow = new Window();
 	if (!m_pWindow)
 	{
 		return E_FAIL;
@@ -116,7 +116,7 @@ HRESULT Director::Init()
 	m_hWnd = m_pWindow->m_hWnd;
 	//direct3D11
 	D3D_INIT di;
-	m_pD3d = new DIRECT3D11;
+	m_pD3d = new DIRECT3D11();
 	if (m_pD3d == NULL)
 	{
 		MSG("Direct3Dの初期化失敗");
@@ -129,7 +129,7 @@ HRESULT Director::Init()
 
 
 	//camera
-	m_pCamera = new Camera;
+	m_pCamera = new Camera();
 	m_pCamera->Init(WINDOW_WIDTH, WINDOW_HEIGHT);
 	m_pCamera->SetCameraPositionGaze(0.0f, 10, -20, 0, 10, 0);
 
@@ -143,22 +143,22 @@ HRESULT Director::Init()
 	//init pmx
 
 	//フレデリカ
-	FreChan = new CMainchar(DrawingType::player, 17);
+	FreChan = new CMainchar(DrawingType::player, 0);
 	FreChan->Init(m_pD3d->m_pDevice, FREDERICA, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)FREDERICA_PASS);
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
 	FreChan->setPosition(XMFLOAT3(3, 0, 0));
 
-	FreChanShadow = new CMainchar(DrawingType::shadow, 17);
+	FreChanShadow = new CMainchar(DrawingType::shadow, 0);
 	FreChanShadow->Init(m_pD3d->m_pDevice, FREDERICA, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)FREDERICA_PASS);
 
 
 	//奏
-	Kanade = new CMainchar(DrawingType::player, 16);
+	Kanade = new CMainchar(DrawingType::player, 0);
 	Kanade->Init(m_pD3d->m_pDevice, KANADE, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)KANADE_PASS);
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
 	Kanade->setPosition(XMFLOAT3(-10, 0, 0));
 
-	KanadeShadow = new CMainchar(DrawingType::shadow, 16);
+	KanadeShadow = new CMainchar(DrawingType::shadow, 0);
 	KanadeShadow->Init(m_pD3d->m_pDevice, KANADE, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)KANADE_PASS);
 
 	//雛鶴愛
@@ -171,12 +171,12 @@ HRESULT Director::Init()
 	AiShadow->Init(m_pD3d->m_pDevice, AI, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)AI_PASS);
 
 	//ミク
-	Miku = new CMainchar(DrawingType::player, 12);
+	Miku = new CMainchar(DrawingType::player, 0);
 	Miku->Init(m_pD3d->m_pDevice, MIKU, SHADER_CHARCTER_NAME, NULL, SHADER_CHARCTER_NAME, (char*)MIKU_PASS);
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
 	Miku->setPosition(XMFLOAT3(-2.5, 0, 0));
 
-	MikuShadow = new CMainchar(DrawingType::shadow, 12);
+	MikuShadow = new CMainchar(DrawingType::shadow, 0);
 	MikuShadow->Init(m_pD3d->m_pDevice, MIKU, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)MIKU_PASS);
 
 
@@ -253,27 +253,34 @@ void Director::Draw()
 	stage->ProcessingCalc(m_pCamera->m_f);
 
 	//キャラクター
+	if (IMGUIDrawdata::get_instance()->getModelDisplay(0)) {
+		FreChanShadow->setPosition(FreChan->getPosition());
+		FreChanShadow->setRotetation(FreChan->getRotetation());
+		FreChanShadow->charDraw(m_pCamera->m_f);
+		FreChan->charDraw(m_pCamera->m_f);
+	}
 
-	FreChanShadow->setPosition(FreChan->getPosition());
-	FreChanShadow->setRotetation(FreChan->getRotetation());
-	FreChanShadow->charDraw(m_pCamera->m_f);
-	FreChan->charDraw(m_pCamera->m_f);
+	if (IMGUIDrawdata::get_instance()->getModelDisplay(1)) {
+		KanadeShadow->setPosition(Kanade->getPosition());
+		KanadeShadow->setRotetation(Kanade->getRotetation());
+		KanadeShadow->charDraw(m_pCamera->m_f);
+		Kanade->charDraw(m_pCamera->m_f);
+	}
 
-	KanadeShadow->setPosition(Kanade->getPosition());
-	KanadeShadow->setRotetation(Kanade->getRotetation());
-	KanadeShadow->charDraw(m_pCamera->m_f);
-	Kanade->charDraw(m_pCamera->m_f);
 
-	AiShadow->setPosition(Ai->getPosition());
-	AiShadow->setRotetation(Ai->getRotetation());
-	AiShadow->charDraw(m_pCamera->m_f);
-	Ai->charDraw(m_pCamera->m_f);
+	if (IMGUIDrawdata::get_instance()->getModelDisplay(2)) {
+		AiShadow->setPosition(Ai->getPosition());
+		AiShadow->setRotetation(Ai->getRotetation());
+		AiShadow->charDraw(m_pCamera->m_f);
+		Ai->charDraw(m_pCamera->m_f);
+	}
 
-	MikuShadow->setPosition(Miku->getPosition());
-	MikuShadow->setRotetation(Miku->getRotetation());
-	MikuShadow->charDraw(m_pCamera->m_f);
-	Miku->charDraw(m_pCamera->m_f);
-
+	if (IMGUIDrawdata::get_instance()->getModelDisplay(3)) {
+		MikuShadow->setPosition(Miku->getPosition());
+		MikuShadow->setRotetation(Miku->getRotetation());
+		MikuShadow->charDraw(m_pCamera->m_f);
+		Miku->charDraw(m_pCamera->m_f);
+	}
 
 	IMGUIDrawdata::get_instance()->Draw();
 }
