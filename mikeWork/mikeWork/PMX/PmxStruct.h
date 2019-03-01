@@ -299,6 +299,13 @@ namespace PmxStruct {
 		float boneWeight[4];
 	};
 
+	struct PMX_SEND_DATA_SHADOW
+	{
+		float pos[3];
+		float boneIndex[4];
+		float boneWeight[4];
+	};
+
 	struct PMX_SEND_DATA_VERTEX//頂点情報用バッファ
 	{
 		unsigned short Index;
@@ -319,3 +326,95 @@ namespace PmxStruct {
 
 #pragma pack(pop)
 }
+
+
+class ObjectIndividualData//個別で設定するデータたち
+{
+public:
+	// 格納する必要のあるデータ
+	ID3D11Buffer* pVerBuffer;
+	ID3D11Buffer* pIndBuffer;
+	ID3D11InputLayout *pVertexLayout;
+	ID3D11VertexShader *pVertexShader;
+	ID3D11PixelShader *pPixelShader;
+	ID3D11RasterizerState *pRasterizerState;
+	ID3D11Buffer* Buffer;
+	ID3D11Buffer* BoneBuffer;
+
+	//11/9　contextの参照を考える 　Clear(11/12) ここに入れず、一つで管理しましょう
+	ObjectIndividualData()
+	{
+	}
+	~ObjectIndividualData() { }
+
+	void ReflectionData(ID3D11DeviceContext*, ID3D11Buffer*);//contextに格納
+	void ReflectionData(ID3D11DeviceContext*, ID3D11Buffer*, ID3D11Buffer*);//contextに格納
+};
+
+//Constant Buffer type
+struct CONSTANT_BUFFER_OBJECT //コンスタンスバッファ object
+{
+#pragma pack(push,1)	//アラインメント制御をオフ
+	XMFLOAT4X4 World;
+	XMFLOAT4X4 View;
+	XMFLOAT4X4 Projection;
+	XMFLOAT4 ambient;
+	XMFLOAT4 diffuse;
+	XMFLOAT4 specular;
+	XMFLOAT3 light_dir;
+	XMFLOAT3 camera_pos;
+#pragma pack(pop)	
+	//11/15以後やる
+};
+
+struct CONSTANT_BUFFER_MAINCHARCTER //コンスタンスバッファ 
+{
+#pragma pack(push,1)	//アラインメント制御をオフ
+	XMFLOAT4X4 World;
+	XMFLOAT4X4 View;
+	XMFLOAT4X4 Projection;
+	XMFLOAT4 ambient;
+	XMFLOAT4 diffuse;
+	XMFLOAT4 specular;
+	XMFLOAT3 light_dir;
+	XMFLOAT3 camera_pos;
+#pragma pack(pop)	
+};
+
+struct CONSTANT_BUFFER {
+	XMFLOAT4X4 World;
+	XMFLOAT4X4 View;
+	XMFLOAT4X4 Projection;
+};
+
+struct CONSTANT_BONE_MATRIX
+{
+	XMMATRIX boneMatrix[200];
+};
+
+//Rendering Data Struct
+struct DrawingAllDataObject//描画時に必要なデータ
+{
+	PMX_DATA pmxdata;//オブジェクトデータ
+	CONSTANT_BUFFER_OBJECT constantBuffer;//コンスタンスバッファ
+	ObjectIndividualData IndiviData;
+	vector<ID3D11ShaderResourceView*> Texture;//テクスチャ
+};
+
+struct DrawingAllDataMainCharcter//描画時に必要なデータ
+{
+	PMX_DATA pmxdata;//オブジェクトデータ
+	CONSTANT_BUFFER_MAINCHARCTER constantBuffer;//コンスタンスバッファ
+	CONSTANT_BONE_MATRIX constantBoneBuffer;//ボーンに使用
+	ObjectIndividualData IndiviData;
+	vector<ID3D11ShaderResourceView*> Texture;//テクスチャ
+	PMX_SEND_DATA *sendData;
+};
+
+struct DrawingAllDataShadow//描画時に必要なデータ
+{
+	PMX_DATA pmxdata;//オブジェクトデータ
+	CONSTANT_BUFFER constantBuffer;//コンスタンスバッファ
+	ObjectIndividualData IndiviData;
+};
+

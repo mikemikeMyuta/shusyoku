@@ -5,6 +5,7 @@ Texture2D g_tex: register(t0);//テクスチャー
 Texture2D g_texAni: register(t1);//テクスチャー
 
 SamplerState g_samLinear : register(s0);//サンプラー
+//SamplerComparisonState g_samLinearShadow : register(s1);//サンプラー
 
 //コンスタンスバッファ
 cbuffer  global: register(b0) {
@@ -20,7 +21,7 @@ cbuffer  global: register(b0) {
 
 cbuffer BoneMatrix:register(b1)
 {
-	matrix BoneMatrix[200];//四百個のボーンしか使えない
+	matrix BoneMatrix[200];//200個のボーンしか使えない
 }
 
 //

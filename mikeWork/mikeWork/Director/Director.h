@@ -72,16 +72,16 @@ public:
 	//pmx
 
 	CMainchar *FreChan;
-	CMainchar *FreChanShadow;
-	
+	CMainchar *FreChanOutline;
+
 	CMainchar *Ai;
-	CMainchar *AiShadow;
+	CMainchar *AiOutline;
 
 	CMainchar *Kanade;
-	CMainchar *KanadeShadow;
+	CMainchar *KanadeOutline;
 
 	CMainchar *Miku;
-	CMainchar *MikuShadow;
+	CMainchar *MikuOutline;
 
 	CPmx* stage;
 
@@ -109,6 +109,8 @@ public:
 	void MainLoop();
 	void FixFPS60();
 	void Update();
+
+	void AllDelete();//‘S•”ƒŠƒŠ[ƒX‚µ‚Ü‚·
 
 	ID3D11ShaderResourceView* Texture;
 	ID3D11ShaderResourceView* TextureTwo;

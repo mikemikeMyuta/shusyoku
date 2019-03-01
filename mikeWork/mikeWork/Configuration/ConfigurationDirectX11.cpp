@@ -84,7 +84,7 @@ HRESULT DIRECT3D11::Init(D3D_INIT* pcd)
 	m_pDeviceContext->OMSetRenderTargets(1, &m_pBackBuffer_TexRTV, m_pBuckBuffer_DSTexDSV);
 	//m_pDeviceContext->OMSetRenderTargets(2, listTV, m_pBuckBuffer_DSTexDSV);
 
-	//震度ステンシルステートを作成
+	//深度ステンシルステートを作成
 	D3D11_DEPTH_STENCIL_DESC dc;
 	ZeroMemory(&dc, sizeof(dc));
 	dc.DepthEnable = true;

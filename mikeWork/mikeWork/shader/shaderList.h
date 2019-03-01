@@ -10,6 +10,8 @@
 #define SHADER_KOIN_NAME (L"shader/koin.hlsl")
 #define SHADER_SHADOW_NAME (L"shader/charcink.hlsl") 
 #define SHADER_POINT_LIGHT (L"shader/PointLight.hlsl") 
+#define SHADER_SHADOWMAP (L"shader/CreateShadowMap.hlsl") 
+
 
 //pixel shader 
 

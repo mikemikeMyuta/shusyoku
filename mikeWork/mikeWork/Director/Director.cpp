@@ -16,6 +16,13 @@ Director::Director()
 
 Director::~Director()
 {
+	AllDelete();
+
+	/*SAFE_DELETE(m_pSound);*/
+}
+
+void Director::AllDelete()
+{
 	SAFE_DELETE(m_pCamera);
 	SAFE_DELETE(m_pD3d);
 	SAFE_DELETE(m_pWindow);
@@ -28,10 +35,32 @@ Director::~Director()
 	SAFE_DELETE(AiDance);
 	SAFE_DELETE(MikuDance);
 
+	//モデル
+
+	////フレデリカ
+	//SAFE_DELETE(FreChan);
+	//SAFE_DELETE(FreChanShadow);
+	//SAFE_DELETE(FreChanOutline);
+
+	////ミク
+	//SAFE_DELETE(Miku);
+	//SAFE_DELETE(MikuShadow);
+	//SAFE_DELETE(MikuOutline);
+
+	////奏
+	//SAFE_DELETE(Kanade);
+	//SAFE_DELETE(KanadeShadow);
+	//SAFE_DELETE(KanadeOutline);
+	//
+	////あい
+	//SAFE_DELETE(Ai);
+	//SAFE_DELETE(AiShadow);
+	//SAFE_DELETE(AiOutline);
+
+
 	ImGui_ImplDX11_Shutdown();
 	IMGUIDrawdata::destroy();
 
-	/*SAFE_DELETE(m_pSound);*/
 }
 
 void Director::Run(HINSTANCE hInstance)
@@ -148,8 +177,9 @@ HRESULT Director::Init()
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
 	FreChan->setPosition(XMFLOAT3(3, 0, 0));
 
-	FreChanShadow = new CMainchar(DrawingType::shadow, 0);
-	FreChanShadow->Init(m_pD3d->m_pDevice, FREDERICA, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)FREDERICA_PASS);
+	FreChanOutline = new CMainchar(DrawingType::shadow, 0);
+	FreChanOutline->Init(m_pD3d->m_pDevice, FREDERICA, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)FREDERICA_PASS);
+
 
 
 	//奏
@@ -158,8 +188,10 @@ HRESULT Director::Init()
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
 	Kanade->setPosition(XMFLOAT3(-10, 0, 0));
 
-	KanadeShadow = new CMainchar(DrawingType::shadow, 0);
-	KanadeShadow->Init(m_pD3d->m_pDevice, KANADE, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)KANADE_PASS);
+	KanadeOutline = new CMainchar(DrawingType::shadow, 0);
+	KanadeOutline->Init(m_pD3d->m_pDevice, KANADE, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)KANADE_PASS);
+	
+
 
 	//雛鶴愛
 	Ai = new CMainchar(DrawingType::player, 0);
@@ -167,8 +199,9 @@ HRESULT Director::Init()
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
 	Ai->setPosition(XMFLOAT3(10, 0, 0));
 
-	AiShadow = new CMainchar(DrawingType::shadow, 0);
-	AiShadow->Init(m_pD3d->m_pDevice, AI, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)AI_PASS);
+	AiOutline = new CMainchar(DrawingType::shadow, 0);
+	AiOutline->Init(m_pD3d->m_pDevice, AI, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)AI_PASS);
+
 
 	//ミク
 	Miku = new CMainchar(DrawingType::player, 0);
@@ -176,8 +209,8 @@ HRESULT Director::Init()
 	//コンストラクタですべきだけど　調整場所わかりやすくするために分けています　
 	Miku->setPosition(XMFLOAT3(-2.5, 0, 0));
 
-	MikuShadow = new CMainchar(DrawingType::shadow, 0);
-	MikuShadow->Init(m_pD3d->m_pDevice, MIKU, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)MIKU_PASS);
+	MikuOutline = new CMainchar(DrawingType::shadow, 0);
+	MikuOutline->Init(m_pD3d->m_pDevice, MIKU, SHADER_SHADOW_NAME, NULL, SHADER_SHADOW_NAME, (char*)MIKU_PASS);
 
 
 
@@ -195,23 +228,26 @@ HRESULT Director::Init()
 	MikuDance->LoadVmdFile((char*)YUKISUKI, Miku->DeliverBones(), Miku->DeliverPmdIkData(), true);
 
 	//ロードしてきたVMDを輪郭線に同期させる　（後　VMDのUpdateだけで同期される）
-	FreChanShadow->SetBone(FreChan->DeliverBones());
-	KanadeShadow->SetBone(Kanade->DeliverBones());
-	AiShadow->SetBone(Ai->DeliverBones());
-	MikuShadow->SetBone(Miku->DeliverBones());
+	FreChanOutline->SetBone(FreChan->DeliverBones());
+	KanadeOutline->SetBone(Kanade->DeliverBones());
+	AiOutline->SetBone(Ai->DeliverBones());
+	MikuOutline->SetBone(Miku->DeliverBones());
+
 
 	//モーションセット 
 	FreChan->SetMotion(FrechanDance);
-	FreChanShadow->SetMotion(FrechanDance);
+	FreChanOutline->SetMotion(FrechanDance);
+
 
 	Kanade->SetMotion(KanadeDance);
-	KanadeShadow->SetMotion(KanadeDance);
+	KanadeOutline->SetMotion(KanadeDance);
 
 	Ai->SetMotion(AiDance);
-	AiShadow->SetMotion(AiDance);
+	AiOutline->SetMotion(AiDance);
+
 
 	Miku->SetMotion(MikuDance);
-	MikuShadow->SetMotion(MikuDance);
+	MikuOutline->SetMotion(MikuDance);
 	//11/10 init ok 他もしましょう
 
 	/*fbxの読み込み*/
@@ -254,31 +290,31 @@ void Director::Draw()
 
 	//キャラクター
 	if (IMGUIDrawdata::get_instance()->getModelDisplay(0)) {
-		FreChanShadow->setPosition(FreChan->getPosition());
-		FreChanShadow->setRotetation(FreChan->getRotetation());
-		FreChanShadow->charDraw(m_pCamera->m_f);
+		FreChanOutline->setPosition(FreChan->getPosition());
+		FreChanOutline->setRotetation(FreChan->getRotetation());
+		FreChanOutline->charDraw(m_pCamera->m_f);
 		FreChan->charDraw(m_pCamera->m_f);
 	}
 
 	if (IMGUIDrawdata::get_instance()->getModelDisplay(1)) {
-		KanadeShadow->setPosition(Kanade->getPosition());
-		KanadeShadow->setRotetation(Kanade->getRotetation());
-		KanadeShadow->charDraw(m_pCamera->m_f);
+		KanadeOutline->setPosition(Kanade->getPosition());
+		KanadeOutline->setRotetation(Kanade->getRotetation());
+		KanadeOutline->charDraw(m_pCamera->m_f);
 		Kanade->charDraw(m_pCamera->m_f);
 	}
 
 
 	if (IMGUIDrawdata::get_instance()->getModelDisplay(2)) {
-		AiShadow->setPosition(Ai->getPosition());
-		AiShadow->setRotetation(Ai->getRotetation());
-		AiShadow->charDraw(m_pCamera->m_f);
+		AiOutline->setPosition(Ai->getPosition());
+		AiOutline->setRotetation(Ai->getRotetation());
+		AiOutline->charDraw(m_pCamera->m_f);
 		Ai->charDraw(m_pCamera->m_f);
 	}
 
 	if (IMGUIDrawdata::get_instance()->getModelDisplay(3)) {
-		MikuShadow->setPosition(Miku->getPosition());
-		MikuShadow->setRotetation(Miku->getRotetation());
-		MikuShadow->charDraw(m_pCamera->m_f);
+		MikuOutline->setPosition(Miku->getPosition());
+		MikuOutline->setRotetation(Miku->getRotetation());
+		MikuOutline->charDraw(m_pCamera->m_f);
 		Miku->charDraw(m_pCamera->m_f);
 	}
 

@@ -1,6 +1,7 @@
 #include "CPmx.h"
 #include "../CAMERA/Camera.h"
 #include "modelList.h"
+#include "../shadow/CShadow.h"
 
 map<LPCSTR, PMX_DATA> CPmx::RetrievalData;
 deque<DrawingAllDataObject> CPmx::RenderingDataObject;
@@ -15,6 +16,10 @@ void CPmx::Render(ID3D11DeviceContext *context)
 {
 	//レンダリング処理をみてやりましょうか
 	D3D11_MAPPED_SUBRESOURCE pdata;
+
+	//clear RenderingDataMain 
+	RenderingDataShadow.clear();
+	//ここでターゲット戻す
 
 	//Other than maincharcter Rendering
 	for (auto itr : RenderingDataObject)
@@ -101,18 +106,6 @@ void CPmx::Render(ID3D11DeviceContext *context)
 
 	}
 	RenderingDataMain.clear();
-	for (auto itr : RenderingDataShadow)
-	{
-		itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer);
-		context->Map(itr.IndiviData.Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
-		memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&itr.constantBuffer), sizeof(itr.constantBuffer));
-		//11/15アンビエント ok
-		context->Unmap(itr.IndiviData.Buffer, 0);
-		context->DrawIndexed(itr.pmxdata.s_PmxFaceNum * 3, 0, 0);
-	}
-
-	//clear RenderingDataMain 
-	RenderingDataShadow.clear();
 
 }
 
@@ -467,10 +460,31 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 		cb.StructureByteStride = sizeof(CONSTANT_BUFFER_OBJECT) + 8;
 		break;
 
-	case Final:
-	default:
+
+	case shadowMap:
+
 		cb.ByteWidth = sizeof(CONSTANT_BUFFER);
 		cb.StructureByteStride = sizeof(CONSTANT_BUFFER);
+
+		D3D11_BUFFER_DESC cbBone;
+		ZeroMemory(&cbBone, sizeof(cbBone));
+		cbBone.ByteWidth = sizeof(CONSTANT_BONE_MATRIX);
+		cbBone.StructureByteStride = sizeof(CONSTANT_BONE_MATRIX);
+		cbBone.Usage = D3D11_USAGE_DYNAMIC;
+		cbBone.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbBone.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbBone.MiscFlags = 0;
+
+		if (device->CreateBuffer(&cbBone, NULL, &IndiviData->BoneBuffer))
+		{
+			MessageBox(0, "Bufferが作成されませんでした。おそらく16の倍数ではないかと思われます", NULL, MB_OK);
+			return;
+		}
+		else {
+			OutputDebugString("\CreateBuffer成功\n");
+		}
+	case Final:
+	default:
 		break;
 	}
 	cb.Usage = D3D11_USAGE_DYNAMIC;
@@ -509,6 +523,7 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 			return;
 		}
 	}
+
 	if (m_ClearTex2 == NULL) {
 		//透明なテクスチャ生成
 		TexMetadata meta;
@@ -553,7 +568,7 @@ void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 {
 	XMMATRIX rotemat;//回転用行列
 	//XMMATRIX keepMat;//逆行列を格納
-//	XMVECTOR useInverse;
+	//	XMVECTOR useInverse;
 	vector<XMMATRIX> data;//ボーン行列を持っている
 	//rotetation 
 	rotemat = XMMatrixRotationY(XMConvertToRadians(Rotetation.y));
@@ -580,8 +595,6 @@ void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 
 		//この下消すと追従カメラに
 		//Camera::m_mView = Camera::m_mView*keepMat;
-
-
 
 		XMStoreFloat4x4(&cbm.World, XMMatrixTranspose(workmat));
 		XMStoreFloat4x4(&cbm.View, XMMatrixTranspose(Camera::m_mView));
@@ -613,8 +626,6 @@ void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 		Draw(m_pmx_data, cbo, IndiviData);//insert data
 
 		//OutputDebugString("\n SetObjectData\n");
-
-		break;
 	}
 	Position = XMFLOAT3(0, 0, 0);
 }
@@ -740,8 +751,6 @@ void CPmx::TexLoad(ID3D11Device* device, LPSTR TexPass)
 
 vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 {
-	D3D11_BUFFER_DESC bd_vertex;
-	ZeroMemory(&bd_vertex, sizeof(bd_vertex));
 
 	int j = 0;//現在のマテリアルの番号を格納
 	int index = m_pmx_data.s_pPmxMaterial[j].MaterialFaceNum;
@@ -897,6 +906,7 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 	return worlds;
 }
 
+
 //-----------------------------------------------------------------------------------------------------------------------------------------
 void ObjectIndividualData::ReflectionData(ID3D11DeviceContext* context, ID3D11Buffer* constantBuffer)//データ格納
 {
@@ -912,6 +922,7 @@ void ObjectIndividualData::ReflectionData(ID3D11DeviceContext* context, ID3D11Bu
 	context->VSSetConstantBuffers(0, 1, &constantBuffer);
 	context->PSSetConstantBuffers(0, 1, &constantBuffer);
 	context->RSSetState(pRasterizerState);
+
 }
 
 void ObjectIndividualData::ReflectionData(ID3D11DeviceContext* context, ID3D11Buffer* constantBuffer, ID3D11Buffer* constantBoneBuffer)//データ格納

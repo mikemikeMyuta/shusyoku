@@ -8,6 +8,7 @@
 #include <vector>
 #include <d3dcompiler.h>
 #include "StaticCalc.h"
+#include "../shadow/CShadow.h"
 
 //use namespace
 using namespace PmxStruct;
@@ -21,99 +22,9 @@ enum DrawingType
 	player = 0,
 	object,
 	shadow,
+	shadowMap,
 	Final //配列に使うかも・・・
 };
-
-class ObjectIndividualData//個別で設定するデータたち
-{
-public:
-	// 格納する必要のあるデータ
-	ID3D11Buffer* pVerBuffer;
-	ID3D11Buffer* pIndBuffer;
-	ID3D11InputLayout *pVertexLayout;
-	ID3D11VertexShader *pVertexShader;
-	ID3D11PixelShader *pPixelShader;
-	ID3D11RasterizerState *pRasterizerState;
-	ID3D11Buffer* Buffer;
-	ID3D11Buffer* BoneBuffer;
-
-	//11/9　contextの参照を考える 　Clear(11/12) ここに入れず、一つで管理しましょう
-	ObjectIndividualData()
-	{
-	}
-	~ObjectIndividualData() { }
-
-	void ReflectionData(ID3D11DeviceContext*, ID3D11Buffer*);//contextに格納
-	void ReflectionData(ID3D11DeviceContext*, ID3D11Buffer*, ID3D11Buffer*);//contextに格納
-};
-
-//Constant Buffer type
-struct CONSTANT_BUFFER_OBJECT //コンスタンスバッファ object
-{
-#pragma pack(push,1)	//アラインメント制御をオフ
-	XMFLOAT4X4 World;
-	XMFLOAT4X4 View;
-	XMFLOAT4X4 Projection;
-	XMFLOAT4 ambient;
-	XMFLOAT4 diffuse;
-	XMFLOAT4 specular;
-	XMFLOAT3 light_dir;
-	XMFLOAT3 camera_pos;
-#pragma pack(pop)	
-	//11/15以後やる
-};
-
-struct CONSTANT_BUFFER_MAINCHARCTER //コンスタンスバッファ 
-{
-#pragma pack(push,1)	//アラインメント制御をオフ
-	XMFLOAT4X4 World;
-	XMFLOAT4X4 View;
-	XMFLOAT4X4 Projection;
-	XMFLOAT4 ambient;
-	XMFLOAT4 diffuse;
-	XMFLOAT4 specular;
-	XMFLOAT3 light_dir;
-	XMFLOAT3 camera_pos;
-#pragma pack(pop)	
-};
-
-struct CONSTANT_BUFFER {
-	XMFLOAT4X4 World;
-	XMFLOAT4X4 View;
-	XMFLOAT4X4 Projection;
-};
-
-struct CONSTANT_BONE_MATRIX
-{
-	XMMATRIX boneMatrix[200];
-};
-
-//Rendering Data Struct
-struct DrawingAllDataObject//描画時に必要なデータ
-{
-	PMX_DATA pmxdata;//オブジェクトデータ
-	CONSTANT_BUFFER_OBJECT constantBuffer;//コンスタンスバッファ
-	ObjectIndividualData IndiviData;
-	vector<ID3D11ShaderResourceView*> Texture;//テクスチャ
-};
-
-struct DrawingAllDataMainCharcter//描画時に必要なデータ
-{
-	PMX_DATA pmxdata;//オブジェクトデータ
-	CONSTANT_BUFFER_MAINCHARCTER constantBuffer;//コンスタンスバッファ
-	CONSTANT_BONE_MATRIX constantBoneBuffer;//ボーンに使用
-	ObjectIndividualData IndiviData;
-	vector<ID3D11ShaderResourceView*> Texture;//テクスチャ
-	PMX_SEND_DATA *sendData;
-};
-
-struct DrawingAllDataShadow//描画時に必要なデータ
-{
-	PMX_DATA pmxdata;//オブジェクトデータ
-	CONSTANT_BUFFER constantBuffer;//コンスタンスバッファ
-	ObjectIndividualData IndiviData;
-};
-
 
 //enum 
 
@@ -146,14 +57,16 @@ public:
 	static deque<DrawingAllDataMainCharcter> RenderingDataMain;//描画するときに使用
 											   //VMDもいる感じですかぁ～　いります
 	static deque<DrawingAllDataShadow> RenderingDataShadow;//描画するときに使用
+
 	ObjectIndividualData *IndiviData;//独自でデータを持たせる
 
 	vector<ID3D11ShaderResourceView*> TexData;//テクスチャのデータを格納
 
-
+	CShadow Cshadow;
 	UINT MorphNum;//モーフナンバー格納
 	UINT WorldMorphNum;//モーフナンバー格納
 
+	PMX_SEND_DATA *VertexBufferUpdate;
 
 	//drawを変える 11/9　clear (11/9)
 
@@ -164,7 +77,8 @@ public:
 	//11/9：draw後の処理をRenderに clear ()
 
 	//create input layout
-	void Cretaelayout(ID3D11Device* m_pDevice);
+	void Cretaelayout(ID3D11Device* Device);
+
 
 	void setPosition(XMFLOAT3 pos) { Position = pos; }
 	void setRotetation(XMFLOAT3 rot) { Rotetation = rot; }
@@ -194,6 +108,7 @@ protected:
 	//you use subclass. so, you dont use this class
 	XMFLOAT3 Position;
 	XMFLOAT3 Rotetation;
+	
 
 	static ID3D11ShaderResourceView* m_ClearTex;//真っ白なテクスチャ用
 	static ID3D11ShaderResourceView* m_ClearTex2;//透明なテクスチャ用
@@ -238,7 +153,8 @@ private:
 	void SetPmxUsingVertexShader(ID3D11Device* m_pDevice, const  LPCWSTR shaderName);
 
 
-	PMX_SEND_DATA *VertexBufferUpdate;
+
+	
 	vector<XMMATRIX> updateVerBuf(XMMATRIX*);
 
 	//CreateBone
@@ -249,7 +165,7 @@ private:
 
 
 public:
-
+	
 	//コンストラクタ、デストラクタ
 	CPmx()
 	{
@@ -265,7 +181,6 @@ public:
 
 	CPmx(DrawingType inputType)
 	{
-
 		pCompilePS = NULL;
 		pCompileVS = NULL;
 		IndiviData = new ObjectIndividualData();
@@ -278,7 +193,6 @@ public:
 
 	CPmx(DrawingType inputType, UINT inputMorphNum)
 	{
-
 		pCompilePS = NULL;
 		pCompileVS = NULL;
 		IndiviData = new ObjectIndividualData();
