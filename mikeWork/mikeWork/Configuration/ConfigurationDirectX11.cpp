@@ -76,13 +76,8 @@ HRESULT DIRECT3D11::Init(D3D_INIT* pcd)
 	//そのテクスチャーに対しデプスステンシルビュー(DSV)を作成
 	m_pDevice->CreateDepthStencilView(m_pBuckBuffer_DSTex, NULL, &m_pBuckBuffer_DSTexDSV);
 
-	ID3D11RenderTargetView* listTV[2];
-	listTV[0] = m_pBackBuffer_TexRTV;
-	listTV[1] = m_pDrawingLikeAnime;
-
 	//レンダーターゲットビューとデプスステンシルビューをパイプラインにセット
 	m_pDeviceContext->OMSetRenderTargets(1, &m_pBackBuffer_TexRTV, m_pBuckBuffer_DSTexDSV);
-	//m_pDeviceContext->OMSetRenderTargets(2, listTV, m_pBuckBuffer_DSTexDSV);
 
 	//深度ステンシルステートを作成
 	D3D11_DEPTH_STENCIL_DESC dc;
@@ -150,15 +145,15 @@ HRESULT DIRECT3D11::Init(D3D_INIT* pcd)
 	m_pDevice->CreateBuffer(&cb, NULL, &pConstantBuffer);
 	return S_OK;
 }
-
+void DIRECT3D11::Change()
+{
+	m_pDeviceContext->OMSetRenderTargets(1, &m_pBackBuffer_TexRTV, m_pBuckBuffer_DSTexDSV);
+}
 void DIRECT3D11::Clear()
 {
 	//画面クリア（実際は単色で画面を塗りつぶす処理）
 	float ClearColor[4] = { 0,0,0,1 };// クリア色作成　RGBAの順
-	//float ClearColor[4] = { 1,1,1,1 };
-	//float ClearNormal[4] = { 0.2f, 0.4f, 0.8f, 1.0f };// クリア色作成　RGBAの順
 
-	//m_pDeviceContext->ClearRenderTargetView(m_pDrawingLikeAnime, ClearNormal);//画面クリア
 	m_pDeviceContext->ClearRenderTargetView(m_pBackBuffer_TexRTV, ClearColor);//画面クリア
 
 

@@ -41,7 +41,7 @@ public:
 	{
 		if (!instance) {
 			instance = new IMGUIDrawdata;
-			animationSpeed = 1.0f;
+			animationSpeed = 1;
 		}
 	}
 
@@ -51,7 +51,7 @@ public:
 		instance = nullptr;
 	}
 
-	static float getAnimationSpeed()
+	static int getAnimationSpeed()
 	{
 		return animationSpeed;
 	}

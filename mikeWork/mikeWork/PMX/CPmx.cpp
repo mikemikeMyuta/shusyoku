@@ -77,6 +77,12 @@ void CPmx::Render(ID3D11DeviceContext *context)
 		context->Unmap(itr.IndiviData.pVerBuffer, 0);
 
 		itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer, itr.IndiviData.BoneBuffer);
+
+		if (itr.ShadowMap != NULL) {
+			ID3D11ShaderResourceView* ShadowMap[] = { itr.ShadowMap };
+			context->PSSetShaderResources(3, 1, ShadowMap);
+		}
+
 		for (int i = 0; i < itr.pmxdata.s_PmxMaterialNum; i++)
 		{
 			if (itr.pmxdata.s_pPmxMaterial[i].TextureIndex >= 0) {
@@ -109,7 +115,6 @@ void CPmx::Render(ID3D11DeviceContext *context)
 
 }
 
-
 void CPmx::Draw(const PMX_DATA data, const CONSTANT_BUFFER_OBJECT cbo, const ObjectIndividualData *IndiviData)
 {
 	DrawingAllDataObject DrawingData; //格納用の変数
@@ -129,7 +134,9 @@ void CPmx::Draw(const PMX_DATA data, const CONSTANT_BUFFER_MAINCHARCTER cbo, con
 	DrawingData.IndiviData = *IndiviData;
 	DrawingData.Texture = TexData;
 	DrawingData.sendData = VertexBufferUpdate;
+	DrawingData.ShadowMap = Cshadow->DepthMap_TexSRV;
 	RenderingDataMain.push_back(DrawingData);//pushBack
+
 
 }
 
@@ -271,7 +278,7 @@ void CPmx::SetPmxUsingPixelShader(ID3D11Device* m_pDevice, const LPCWSTR shaderN
 	{
 		MessageBox(0, (LPSTR)pErrors->GetBufferPointer(), NULL, MB_OK);
 		exit(true);
-	}
+}
 	OutputDebugString("\nPShlsl読み込み成功\n");
 
 	hr = m_pDevice->CreatePixelShader(pCompilePS->GetBufferPointer(), pCompilePS->GetBufferSize(), NULL, &IndiviData->pPixelShader);
@@ -310,7 +317,7 @@ void  CPmx::SetPmxUsingVertexShader(ID3D11Device* m_pDevice, const LPCWSTR shade
 	{
 		MessageBox(0, (LPSTR)pErrors->GetBufferPointer(), NULL, MB_OK);
 		exit(true);
-	}
+}
 	OutputDebugString("\nVShlsl読み込み成功\n");
 	hr = m_pDevice->CreateVertexShader(pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), NULL, &IndiviData->pVertexShader);
 
@@ -454,6 +461,8 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 		else {
 			OutputDebugString("\CreateBuffer成功\n");
 		}
+
+		Cshadow->indiviData->BoneBuffer = IndiviData->BoneBuffer;
 		break;
 	case object:
 		cb.ByteWidth = sizeof(CONSTANT_BUFFER_OBJECT) + 8;
@@ -461,28 +470,6 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 		break;
 
 
-	case shadowMap:
-
-		cb.ByteWidth = sizeof(CONSTANT_BUFFER);
-		cb.StructureByteStride = sizeof(CONSTANT_BUFFER);
-
-		D3D11_BUFFER_DESC cbBone;
-		ZeroMemory(&cbBone, sizeof(cbBone));
-		cbBone.ByteWidth = sizeof(CONSTANT_BONE_MATRIX);
-		cbBone.StructureByteStride = sizeof(CONSTANT_BONE_MATRIX);
-		cbBone.Usage = D3D11_USAGE_DYNAMIC;
-		cbBone.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbBone.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbBone.MiscFlags = 0;
-
-		if (device->CreateBuffer(&cbBone, NULL, &IndiviData->BoneBuffer))
-		{
-			MessageBox(0, "Bufferが作成されませんでした。おそらく16の倍数ではないかと思われます", NULL, MB_OK);
-			return;
-		}
-		else {
-			OutputDebugString("\CreateBuffer成功\n");
-		}
 	case Final:
 	default:
 		break;
@@ -592,7 +579,7 @@ void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 		data = updateVerBuf(&workmat);
 		//keepMat = XMMatrixInverse(&useInverse, workmat);
 
-
+		XMMATRIX shadowMapMat = Camera::m_mView*Camera::m_mProj*SHADOW_BIAS;
 		//この下消すと追従カメラに
 		//Camera::m_mView = Camera::m_mView*keepMat;
 
@@ -604,11 +591,15 @@ void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 		XMStoreFloat4(&cbm.specular, XMLoadFloat4((const XMFLOAT4*)&specular.data));
 		XMStoreFloat3(&cbm.light_dir, XMLoadFloat3((const XMFLOAT3*)&light_dir));
 		XMStoreFloat3(&cbm.camera_pos, XMLoadFloat3((const XMFLOAT3*)&camerapos));
+		XMStoreFloat4x4(&cbm.Shadow, XMMatrixTranspose(shadowMapMat));
 
 		for (int i = 0; i < data.size(); i++) {
 			cbmr.boneMatrix[i] = XMMatrixTranspose(data[i]);
 		}
+
 		Draw(m_pmx_data, cbm, cbmr, IndiviData);//insert data
+		if (type == player)
+			Cshadow->Draw(cbm.World, cbm.View, cbm.Projection, cbmr.boneMatrix);
 
 		//OutputDebugString("\n SetPlayerData\n");
 
@@ -814,6 +805,7 @@ vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
 		}
 	}
 	if (type == DrawingType::player) {
+
 		static FLOAT timeMorph;//現在時間
 		static FLOAT timedif;//時間差
 		static BOOL MorphState = true;//どっちの状態か trueが通常
@@ -931,6 +923,7 @@ void ObjectIndividualData::ReflectionData(ID3D11DeviceContext* context, ID3D11Bu
 	UINT stride = sizeof(PMX_SEND_DATA);	//座標に使用するサイズ XMFloat*3 
 																	//posX,posY,posZに準ずる
 	UINT offset = 0;
+	//	context->PSSetShaderResources(0, 1, &itr.Texture[itr.pmxdata.s_pPmxMaterial[i].TextureIndex]);影用
 	context->IASetVertexBuffers(0, 1, &pVerBuffer, &stride, &offset);
 	context->IASetIndexBuffer(pIndBuffer, DXGI_FORMAT_R16_UINT, 0);
 	context->IASetInputLayout(pVertexLayout);
@@ -941,5 +934,3 @@ void ObjectIndividualData::ReflectionData(ID3D11DeviceContext* context, ID3D11Bu
 	context->PSSetConstantBuffers(0, 1, &constantBuffer);
 	context->RSSetState(pRasterizerState);
 }
-
-

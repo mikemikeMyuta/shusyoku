@@ -100,6 +100,12 @@ void Director::Run(HINSTANCE hInstance)
 
 void Director::RenderRoom()
 {
+	FreChan->Cshadow->Render(m_pD3d->m_pDeviceContext);
+	Kanade->Cshadow->Render(m_pD3d->m_pDeviceContext);
+	Miku->Cshadow->Render(m_pD3d->m_pDeviceContext);
+	Ai->Cshadow->Render(m_pD3d->m_pDeviceContext);
+	//‚±‚±‚Å‰e•`‰æ
+	m_pD3d->Change();//ƒ^[ƒQƒbƒg•ÏX
 	m_pD3d->m_pDeviceContext->PSSetSamplers(0, 1, &SampleLinear);
 	CPmx::Render(m_pD3d->m_pDeviceContext);
 	//light->Render(m_pD3d->m_pDeviceContext);
@@ -221,6 +227,8 @@ HRESULT Director::Init()
 	stage->setPosition(XMFLOAT3(0, 0, 0));
 
 
+	
+
 	//VMD
 	FrechanDance->LoadVmdFile((char*)ONESHIN, FreChan->DeliverBones(), FreChan->DeliverPmdIkData(), true);
 	KanadeDance->LoadVmdFile((char*)LOVELETTER, Kanade->DeliverBones(), Kanade->DeliverPmdIkData(), true);
@@ -250,8 +258,22 @@ HRESULT Director::Init()
 	MikuOutline->SetMotion(MikuDance);
 	//11/10 init ok ‘¼‚à‚µ‚Ü‚µ‚å‚¤
 
-	/*fbx‚Ì“Ç‚Ýž‚Ý*/
+	//‰e
+	FreChan->Cshadow->Init(m_pD3d->m_pDevice, FreChan->GetPmxData(), SHADER_SHADOWMAP, NULL, SHADER_SHADOWMAP, FreChan->DeliverBones(),FreChan->DeliverPmdIkData());
 
+	FreChanOutline->Cshadow->Init(m_pD3d->m_pDevice, FreChan->GetPmxData(), SHADER_SHADOWMAP, NULL, SHADER_SHADOWMAP, FreChan->DeliverBones(), FreChan->DeliverPmdIkData());
+
+	Kanade->Cshadow->Init(m_pD3d->m_pDevice, Kanade->GetPmxData(), SHADER_SHADOWMAP, NULL, SHADER_SHADOWMAP, Kanade->DeliverBones(), Kanade->DeliverPmdIkData());
+
+	KanadeOutline->Cshadow->Init(m_pD3d->m_pDevice, Kanade->GetPmxData(), SHADER_SHADOWMAP, NULL, SHADER_SHADOWMAP, Kanade->DeliverBones(), Kanade->DeliverPmdIkData());
+
+	Ai->Cshadow->Init(m_pD3d->m_pDevice, Ai->GetPmxData(), SHADER_SHADOWMAP, NULL, SHADER_SHADOWMAP, Ai->DeliverBones(), Ai->DeliverPmdIkData());
+
+	AiOutline->Cshadow->Init(m_pD3d->m_pDevice, Ai->GetPmxData(), SHADER_SHADOWMAP, NULL, SHADER_SHADOWMAP, Ai->DeliverBones(), Ai->DeliverPmdIkData());
+
+	Miku->Cshadow->Init(m_pD3d->m_pDevice, Miku->GetPmxData(), SHADER_SHADOWMAP, NULL, SHADER_SHADOWMAP, Miku->DeliverBones(), Miku->DeliverPmdIkData());
+
+	MikuOutline->Cshadow->Init(m_pD3d->m_pDevice, Miku->GetPmxData(), SHADER_SHADOWMAP, NULL, SHADER_SHADOWMAP, Miku->DeliverBones(), Miku->DeliverPmdIkData());
 	/*light = new CLight();
 	light->Init(m_pD3d->m_pDevice, m_pD3d->m_pDeviceContext, SHADER_POINT_LIGHT, NULL, SHADER_POINT_LIGHT);*/
 	InitInput(m_hInstance, m_pD3d->m_hWnd);

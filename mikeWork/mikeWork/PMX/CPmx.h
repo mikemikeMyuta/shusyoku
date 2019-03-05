@@ -1,7 +1,6 @@
 #pragma once
 
 #include "PmxLoad.h"
-#include "VMD.h"
 #include "../shader/shaderList.h"
 #include <map>
 #include <deque>
@@ -62,7 +61,7 @@ public:
 
 	vector<ID3D11ShaderResourceView*> TexData;//テクスチャのデータを格納
 
-	CShadow Cshadow;
+	CShadow *Cshadow;//initでNewしておく
 	UINT MorphNum;//モーフナンバー格納
 	UINT WorldMorphNum;//モーフナンバー格納
 
@@ -177,6 +176,7 @@ public:
 		Position = XMFLOAT3(0, 0, 0);
 		Rotetation = XMFLOAT3(0, 1, 0);
 		MorphNum = 0;
+		Cshadow = new CShadow();
 	}
 
 	CPmx(DrawingType inputType)
@@ -189,6 +189,7 @@ public:
 		Position = XMFLOAT3(0, 0, 0);
 		Rotetation = XMFLOAT3(0, 0, 0);
 		MorphNum = 0;
+		Cshadow = new CShadow();
 	}
 
 	CPmx(DrawingType inputType, UINT inputMorphNum)
@@ -201,6 +202,7 @@ public:
 		Position = XMFLOAT3(0, 0, 0);
 		Rotetation = XMFLOAT3(0, 0, 0);
 		MorphNum = inputMorphNum;
+		Cshadow = new CShadow();
 	}
 
 	virtual ~CPmx() {

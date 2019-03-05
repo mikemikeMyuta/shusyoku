@@ -59,6 +59,7 @@ public:
 	HRESULT Init(D3D_INIT*); 
 	void ShowFPS(); 
 	void Clear();//画面クリア用メソッド
+	void Change();//ターゲットを変更
 	HRESULT Present();//貼り付け
 	
 private: 

@@ -21,7 +21,7 @@ struct VS_IN
 //------------------------------------------------
 // 頂点シェーダ
 //------------------------------------------------
-void vs_main(VS_IN　input,
+void vs_main(VS_IN input,
 	out float4 out_pos : POSITION,
 	out float4 out_depth : TEXCOORD0)
 {
@@ -36,9 +36,9 @@ void vs_main(VS_IN　input,
 
 
 	// 座標変換
-	out_pos = mul(output.pos, World);
-	out_pos = mul(output.pos, View);
-	out_pos = mul(output.pos, Projection);
+	out_pos = mul(out_pos, World);
+	out_pos = mul(out_pos, View);
+	out_pos = mul(out_pos, Projection);
 	// スクリーン座標をそのままピクセルシェーダーへ渡す
 	out_depth = out_pos;
 }

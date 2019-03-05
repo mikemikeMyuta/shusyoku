@@ -1,5 +1,6 @@
-#include "CShadow.h"
 #include "../PMX/CPmx.h"
+
+
 
 CShadow::CShadow()
 {
@@ -11,8 +12,9 @@ CShadow::~CShadow()
 	delete indiviData;
 }
 
-void CShadow::Init(ID3D11Device *device, const PmxStruct::PMX_DATA pmxData, const LPCWSTR psShaderName, const LPCWSTR gsShaderName, const LPCWSTR vsShaderName, vector<Bone> animeBone, vector<MmdStruct::PmdIkData> pmdIkData)
+void CShadow::Init(ID3D11Device *device, PmxStruct::PMX_DATA *PmxData, const LPCWSTR psShaderName, const LPCWSTR gsShaderName, const LPCWSTR vsShaderName, vector<Bone> *animeBone, vector<MmdStruct::PmdIkData> *pmdIkData)
 {
+	pmxData = PmxData;
 
 	IndexdataForPoint(device);//create buffer
 	IndexdataForVertex(device);//create buffer
@@ -112,6 +114,52 @@ void CShadow::Init(ID3D11Device *device, const PmxStruct::PMX_DATA pmxData, cons
 		}
 	}
 
+	// サンプラーステートを生成
+	D3D11_SAMPLER_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	desc.BorderColor[0] = 1.0f;
+	desc.BorderColor[1] = 1.0f;
+	desc.BorderColor[2] = 1.0f;
+	desc.BorderColor[3] = 1.0f;
+	desc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	desc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	desc.MaxAnisotropy = 1;
+	desc.MipLODBias = 0;
+	desc.MinLOD = -FLT_MAX;
+	desc.MaxLOD = +FLT_MAX;
+
+	HRESULT hr = device->CreateSamplerState(&desc, &Smp);
+	if (FAILED(hr))
+	{
+		MessageBox(0, "CreateSamplerState shadow error", NULL, MB_OK);
+		exit(true);
+	}
+
+	D3D11_BUFFER_DESC cb;
+	ZeroMemory(&cb, sizeof(cb));
+	cb.ByteWidth = sizeof(CONSTANT_BUFFER);//16の倍数になるように調整
+	cb.StructureByteStride = sizeof(CONSTANT_BUFFER);
+	cb.Usage = D3D11_USAGE_DYNAMIC;
+	cb.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cb.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cb.MiscFlags = 0;
+
+	if (device->CreateBuffer(&cb, NULL, &indiviData->Buffer))
+	{
+		MessageBox(0, "Bufferが作成されませんでした。おそらく16の倍数ではないかと思われます", NULL, MB_OK);
+		return;
+	}
+	else {
+		OutputDebugString("\CreateBuffer成功\n");
+	}
+
+	//データ同期
+	SetBone(animeBone);
+	SetPmdIKdata(pmdIkData);
+
 }
 
 void CShadow::CreateShadowLayout(ID3D11Device* Device)
@@ -202,15 +250,15 @@ void CShadow::IndexdataForPoint(ID3D11Device* pDevice)
 	ZeroMemory(&bd_index, sizeof(bd_index));
 
 	//データを格納しなおす
-	unsigned short* indexdata = new unsigned short[pmxData.s_PmxFaceNum * 3];
-	for (unsigned int i = 0; i < pmxData.s_PmxFaceNum; i++)
+	unsigned short* indexdata = new unsigned short[pmxData->s_PmxFaceNum * 3];
+	for (unsigned int i = 0; i < pmxData->s_PmxFaceNum; i++)
 	{
-		indexdata[i * 3] = pmxData.s_pPmxFace[i].VertexIndex[0];
-		indexdata[(i * 3) + 1] = pmxData.s_pPmxFace[i].VertexIndex[1];
-		indexdata[(i * 3) + 2] = pmxData.s_pPmxFace[i].VertexIndex[2];
+		indexdata[i * 3] = pmxData->s_pPmxFace[i].VertexIndex[0];
+		indexdata[(i * 3) + 1] = pmxData->s_pPmxFace[i].VertexIndex[1];
+		indexdata[(i * 3) + 2] = pmxData->s_pPmxFace[i].VertexIndex[2];
 	}
 
-	bd_index.ByteWidth = sizeof(unsigned short) * pmxData.s_PmxFaceNum * 3;//Indexの数格納
+	bd_index.ByteWidth = sizeof(unsigned short) * pmxData->s_PmxFaceNum * 3;//Indexの数格納
 	bd_index.Usage = D3D11_USAGE_DEFAULT;
 	bd_index.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd_index.CPUAccessFlags = 0;
@@ -235,26 +283,26 @@ void CShadow::IndexdataForVertex(ID3D11Device* pDevice)
 	D3D11_BUFFER_DESC bd_vertex;
 	ZeroMemory(&bd_vertex, sizeof(bd_vertex));
 
-	VertexBufferUpdate = new PMX_SEND_DATA_SHADOW[pmxData.s_PmxVertexNum];
+	VertexBufferUpdate = new PMX_SEND_DATA_SHADOW[pmxData->s_PmxVertexNum];
 
-	for (int i = 0; i < pmxData.s_PmxVertexNum; i++)
+	for (int i = 0; i < pmxData->s_PmxVertexNum; i++)
 	{
-		VertexBufferUpdate[i].pos[0] = MmdStruct::scale*pmxData.s_pPmxVertex[i].Position[0];
-		VertexBufferUpdate[i].pos[1] = MmdStruct::scale*pmxData.s_pPmxVertex[i].Position[1];
-		VertexBufferUpdate[i].pos[2] = MmdStruct::scale*pmxData.s_pPmxVertex[i].Position[2];
+		VertexBufferUpdate[i].pos[0] = MmdStruct::scale*pmxData->s_pPmxVertex[i].Position[0];
+		VertexBufferUpdate[i].pos[1] = MmdStruct::scale*pmxData->s_pPmxVertex[i].Position[1];
+		VertexBufferUpdate[i].pos[2] = MmdStruct::scale*pmxData->s_pPmxVertex[i].Position[2];
 
-		VertexBufferUpdate[i].boneIndex[0] = pmxData.s_pPmxVertex[i].BoneIndex[0];
-		VertexBufferUpdate[i].boneIndex[1] = pmxData.s_pPmxVertex[i].BoneIndex[1];
-		VertexBufferUpdate[i].boneIndex[2] = pmxData.s_pPmxVertex[i].BoneIndex[2];
-		VertexBufferUpdate[i].boneIndex[3] = pmxData.s_pPmxVertex[i].BoneIndex[3];
+		VertexBufferUpdate[i].boneIndex[0] = pmxData->s_pPmxVertex[i].BoneIndex[0];
+		VertexBufferUpdate[i].boneIndex[1] = pmxData->s_pPmxVertex[i].BoneIndex[1];
+		VertexBufferUpdate[i].boneIndex[2] = pmxData->s_pPmxVertex[i].BoneIndex[2];
+		VertexBufferUpdate[i].boneIndex[3] = pmxData->s_pPmxVertex[i].BoneIndex[3];
 
-		VertexBufferUpdate[i].boneWeight[0] = pmxData.s_pPmxVertex[i].BoneWeight[0];
-		VertexBufferUpdate[i].boneWeight[1] = pmxData.s_pPmxVertex[i].BoneWeight[1];
-		VertexBufferUpdate[i].boneWeight[2] = pmxData.s_pPmxVertex[i].BoneWeight[2];
-		VertexBufferUpdate[i].boneWeight[3] = pmxData.s_pPmxVertex[i].BoneWeight[3];
+		VertexBufferUpdate[i].boneWeight[0] = pmxData->s_pPmxVertex[i].BoneWeight[0];
+		VertexBufferUpdate[i].boneWeight[1] = pmxData->s_pPmxVertex[i].BoneWeight[1];
+		VertexBufferUpdate[i].boneWeight[2] = pmxData->s_pPmxVertex[i].BoneWeight[2];
+		VertexBufferUpdate[i].boneWeight[3] = pmxData->s_pPmxVertex[i].BoneWeight[3];
 	}
 
-	bd_vertex.ByteWidth = sizeof(PMX_SEND_DATA_SHADOW) * pmxData.s_PmxVertexNum;
+	bd_vertex.ByteWidth = sizeof(PMX_SEND_DATA_SHADOW) * pmxData->s_PmxVertexNum;
 	bd_vertex.Usage = D3D11_USAGE_DYNAMIC;
 	bd_vertex.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd_vertex.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -285,12 +333,13 @@ void CShadow::Draw(XMFLOAT4X4 World, XMFLOAT4X4 View, XMFLOAT4X4 Projection, XMM
 		constantBufferMatrix.boneMatrix[0] = boneMat[0];
 	}
 }
+
 void CShadow::Render(ID3D11DeviceContext* context)
 {
 	D3D11_MAPPED_SUBRESOURCE pdata;
 	HRESULT hr;
 	int index = 0;
-
+	indiviData->ReflectionData(context, indiviData->Buffer, indiviData->BoneBuffer);
 	hr = context->Map(indiviData->Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
 	if (hr == S_OK)
 		memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&constantBuffer), sizeof(constantBuffer));
@@ -305,14 +354,32 @@ void CShadow::Render(ID3D11DeviceContext* context)
 	//11/15アンビエント ok
 	context->Unmap(indiviData->BoneBuffer, 0);
 
-
 	hr = context->Map(indiviData->pVerBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
 	if (hr == S_OK)
-		memcpy_s(pdata.pData, pdata.RowPitch, (void*)(VertexBufferUpdate), sizeof(PMX_SEND_DATA_SHADOW)*pmxData.s_PmxVertexNum);
+		memcpy_s(pdata.pData, pdata.RowPitch, (void*)(VertexBufferUpdate), sizeof(PMX_SEND_DATA_SHADOW)*pmxData->s_PmxVertexNum);
 	//11/15アンビエント ok
 	context->Unmap(indiviData->pVerBuffer, 0);
 
-	itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer, itr.IndiviData.BoneBuffer);//ここ確認
-		context->DrawIndexed(0,pmxData.s_PmxVertexNum, 0);
 
+	context->DrawIndexed(0, pmxData->s_PmxVertexNum, 0);
+
+}
+
+void CShadow::ReflectionDataShadow(ID3D11DeviceContext* context)
+{
+
+	context->OMSetRenderTargets(1, &DepthMap_TexRTV, DepthMap_DSTexDSV);//ターゲット変更
+
+	UINT stride = sizeof(PMX_SEND_DATA_SHADOW);	//座標に使用するサイズ XMFloat*3 
+																	//posX,posY,posZに準ずる
+	UINT offset = 0;
+
+	context->IASetVertexBuffers(0, 1, &indiviData->pVerBuffer, &stride, &offset);
+	context->IASetIndexBuffer(indiviData->pIndBuffer, DXGI_FORMAT_R16_UINT, 0);
+	context->IASetInputLayout(indiviData->pVertexLayout);
+	context->VSSetShader(indiviData->pVertexShader, NULL, 0);
+	context->PSSetShader(indiviData->pPixelShader, NULL, 0);
+	context->VSSetConstantBuffers(0, 1, &indiviData->Buffer);
+	context->VSSetConstantBuffers(1, 1, &indiviData->BoneBuffer);
+	context->PSSetConstantBuffers(0, 1, &indiviData->Buffer);
 }

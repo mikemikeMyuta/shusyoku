@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <vector>
 #include <DirectXMath.h>
+#include <d3d11.h>
 
 using namespace std;
 using namespace DirectX;
@@ -328,6 +329,7 @@ namespace PmxStruct {
 }
 
 
+
 class ObjectIndividualData//個別で設定するデータたち
 {
 public:
@@ -349,6 +351,7 @@ public:
 
 	void ReflectionData(ID3D11DeviceContext*, ID3D11Buffer*);//contextに格納
 	void ReflectionData(ID3D11DeviceContext*, ID3D11Buffer*, ID3D11Buffer*);//contextに格納
+
 };
 
 //Constant Buffer type
@@ -378,6 +381,7 @@ struct CONSTANT_BUFFER_MAINCHARCTER //コンスタンスバッファ
 	XMFLOAT4 specular;
 	XMFLOAT3 light_dir;
 	XMFLOAT3 camera_pos;
+	XMFLOAT4X4 Shadow;
 #pragma pack(pop)	
 };
 
@@ -392,10 +396,12 @@ struct CONSTANT_BONE_MATRIX
 	XMMATRIX boneMatrix[200];
 };
 
+
+
 //Rendering Data Struct
 struct DrawingAllDataObject//描画時に必要なデータ
 {
-	PMX_DATA pmxdata;//オブジェクトデータ
+	PmxStruct::PMX_DATA pmxdata;//オブジェクトデータ
 	CONSTANT_BUFFER_OBJECT constantBuffer;//コンスタンスバッファ
 	ObjectIndividualData IndiviData;
 	vector<ID3D11ShaderResourceView*> Texture;//テクスチャ
@@ -403,17 +409,18 @@ struct DrawingAllDataObject//描画時に必要なデータ
 
 struct DrawingAllDataMainCharcter//描画時に必要なデータ
 {
-	PMX_DATA pmxdata;//オブジェクトデータ
+	PmxStruct::PMX_DATA pmxdata;//オブジェクトデータ
 	CONSTANT_BUFFER_MAINCHARCTER constantBuffer;//コンスタンスバッファ
 	CONSTANT_BONE_MATRIX constantBoneBuffer;//ボーンに使用
 	ObjectIndividualData IndiviData;
 	vector<ID3D11ShaderResourceView*> Texture;//テクスチャ
-	PMX_SEND_DATA *sendData;
+	ID3D11ShaderResourceView* ShadowMap;//シャドウマップ
+	PmxStruct::PMX_SEND_DATA *sendData;
 };
 
 struct DrawingAllDataShadow//描画時に必要なデータ
 {
-	PMX_DATA pmxdata;//オブジェクトデータ
+	PmxStruct::PMX_DATA pmxdata;//オブジェクトデータ
 	CONSTANT_BUFFER constantBuffer;//コンスタンスバッファ
 	ObjectIndividualData IndiviData;
 };

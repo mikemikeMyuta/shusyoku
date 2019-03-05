@@ -1,5 +1,5 @@
 cbuffer  global:register(b0) {
-	float4x4 World;    // 変換行列
+	float4x4 World;
 	float4x4 View;
 	float4x4 Projection;
 	float4 ambient;
@@ -7,12 +7,14 @@ cbuffer  global:register(b0) {
 	float4 specular;
 	float3 light_dir;
 	float3 camera_pos;
+	float4x4 Shadow;
 };
 
 cbuffer BoneMatrix:register(b1)
 {
 	matrix BoneMatrix[200];//四百個のボーンしか使えない
 }
+
 struct VS_IN
 {
 	float3 pos : POSITION;
@@ -44,11 +46,6 @@ VS_OUT vs_main(VS_IN input)
 
 
 
-	//距離減衰で輪郭線変化
-
-
-
-
 	P = (float3)input.pos + input.normal*0.03f;
 	
 	output.pos = mul(float4(P, 1.0f), comb);
@@ -71,6 +68,6 @@ struct PS_OUT
 PS_OUT ps_main()
 {
 	PS_OUT output;
-	output.col = float4(0, 0, 0, 1);
+	output.col = float4( 0.1f, 0.1f, 0.1f,1.0f);
 	return output;
 }
