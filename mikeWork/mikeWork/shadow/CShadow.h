@@ -7,15 +7,25 @@
 //#include <DirectXMath.h>//これだけでは何も起きない・・・なんで・・・
 #include "../PMX/PmxStruct.h"//これを入れるとなぜかDirectXMathのインクルードがうまくいく
 #include "../PMX/VMD.h"
+#include <deque>
 
-#define DEPTHTEX_WIDTH (1600)
-#define DEPTHTEX_HEIGHT (900)
+#define DEPTHTEX_WIDTH (2048)
+#define DEPTHTEX_HEIGHT (2048)
 
 static const XMMATRIX SHADOW_BIAS = XMMATRIX(
 	0.5f, 0.0f, 0.0f, 0.0f,
 	0.0f, -0.5f, 0.0f, 0.0f,
 	0.0f, 0.0f, 1.0f, 0.0f,
 	0.5f, 0.5f, 0.0f, 1.0f);
+
+struct DrawingAllDataShadowMap//描画時に必要なデータ
+{
+	PmxStruct::PMX_DATA pmxdata;//オブジェクトデータ
+	CONSTANT_BUFFER constantBuffer;//コンスタンスバッファ
+	CONSTANT_BONE_MATRIX boneMat;
+	ObjectIndividualData IndiviData;
+	PmxStruct::PMX_SEND_DATA_SHADOW *sendData;
+};
 //影を出すために使うclass
 //シャドウテクスチャを作るため
 //実際の影はキャラのshaderになると思います。
@@ -42,29 +52,30 @@ public:
 		第七引数　第二引数でモデルのIK
 	*/
 
-	void Render(ID3D11DeviceContext*);
-	void Draw(XMFLOAT4X4 World, XMFLOAT4X4 View, XMFLOAT4X4 Projection, XMMATRIX* boneMat);//バッファをセット。	   
+	static void Render(ID3D11DeviceContext*);
+	void Draw(XMFLOAT4X4 World, XMFLOAT4X4 View, XMFLOAT4X4 Projection, CONSTANT_BONE_MATRIX* boneMat);//バッファをセット。	   
 
-
+	static deque< DrawingAllDataShadowMap> shadowRender;
 	//DO:これグローバルに　データ入れておく
-	PMX_SEND_DATA_SHADOW *VertexBufferUpdate;//データをリンクさせるため
+	PmxStruct::PMX_SEND_DATA_SHADOW *VertexBufferUpdate;//データをリンクさせるため
 	CONSTANT_BUFFER constantBuffer;
 	CONSTANT_BONE_MATRIX constantBufferMatrix;
+	static ID3D11RenderTargetView *DepthMap_TexRTV;
+	static ID3D11DepthStencilView *DepthMap_DSTexDSV;
 
 	//セットするもの
 	void SetPmxData(PmxStruct::PMX_DATA *data) { pmxData = data; }
 	void SetMotion(VmdMotionController* motion) { VmdMotionController = motion; }
 
-	ID3D11ShaderResourceView*  DepthMap_TexSRV;//これを使う
+	static ID3D11ShaderResourceView*  DepthMap_TexSRV;//これを使う
 
-	ID3D11SamplerState* GetSmp() { return Smp; }
 	ObjectIndividualData *indiviData;//これ使う　ここを今からする
+	static ID3D11SamplerState *Smp;
 private:
-	ID3D11Texture2D *DepthMap_Tex;
-	ID3D11Texture2D *DepthMap_DSTex;
-	ID3D11RenderTargetView *DepthMap_TexRTV;
-	ID3D11DepthStencilView *DepthMap_DSTexDSV;
-	ID3D11SamplerState *Smp;
+	static ID3D11Texture2D *DepthMap_Tex;
+	static ID3D11Texture2D *DepthMap_DSTex;
+
+
 
 
 	PmxStruct::PMX_DATA *pmxData;
@@ -78,7 +89,6 @@ private:
 	vector<Bone> bones;
 	vector<MmdStruct::PmdIkData> pmdIkData;
 
-	void ReflectionDataShadow(ID3D11DeviceContext*);//contextに格納
 
 	void SetBone(vector<Bone>* b) {
 		bones.resize(b->size());

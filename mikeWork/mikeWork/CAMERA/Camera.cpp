@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "../imgui/CImguiMine.h"
 
 XMMATRIX Camera::m_mView;
 XMMATRIX Camera::m_mProj;

@@ -1,6 +1,12 @@
 #include "../PMX/CPmx.h"
 
-
+deque< DrawingAllDataShadowMap> CShadow::shadowRender;
+ID3D11RenderTargetView *CShadow::DepthMap_TexRTV;
+ID3D11DepthStencilView *CShadow::DepthMap_DSTexDSV;
+ID3D11ShaderResourceView* CShadow::DepthMap_TexSRV;
+ID3D11SamplerState *CShadow::Smp;
+ID3D11Texture2D *CShadow::DepthMap_Tex;
+ID3D11Texture2D *CShadow::DepthMap_DSTex;
 
 CShadow::CShadow()
 {
@@ -37,6 +43,7 @@ void CShadow::Init(ID3D11Device *device, PmxStruct::PMX_DATA *PmxData, const LPC
 	CreateShadowLayout(device);//create layout
 
 	//深度マップテクスチャ
+	if (DepthMap_TexRTV == NULL || DepthMap_DSTexDSV == NULL)
 	{
 		HRESULT hr;
 		//深度マップテクスチャーを作成
@@ -80,7 +87,7 @@ void CShadow::Init(ID3D11Device *device, PmxStruct::PMX_DATA *PmxData, const LPC
 		descDepth.Height = DEPTHTEX_HEIGHT;
 		descDepth.MipLevels = 1;
 		descDepth.ArraySize = 1;
-		descDepth.Format = DXGI_FORMAT_D32_FLOAT;
+		descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 		descDepth.SampleDesc.Count = 1;
 		descDepth.SampleDesc.Quality = 0;
 		descDepth.Usage = D3D11_USAGE_DEFAULT;
@@ -112,32 +119,32 @@ void CShadow::Init(ID3D11Device *device, PmxStruct::PMX_DATA *PmxData, const LPC
 			MessageBox(nullptr, "CreateShaderResourceView error", "error", MB_OK);
 			exit(true);
 		}
+
+
+		// サンプラーステートを生成
+		D3D11_SAMPLER_DESC desc;
+		ZeroMemory(&desc, sizeof(desc));
+		desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+		desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+		desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+		desc.BorderColor[0] = 1.0f;
+		desc.BorderColor[1] = 1.0f;
+		desc.BorderColor[2] = 1.0f;
+		desc.BorderColor[3] = 1.0f;
+		desc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+		desc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+		desc.MaxAnisotropy = 1;
+		desc.MipLODBias = 0;
+		desc.MinLOD = -FLT_MAX;
+		desc.MaxLOD = +FLT_MAX;
+
+		hr = device->CreateSamplerState(&desc, &Smp);
+		if (FAILED(hr))
+		{
+			MessageBox(0, "CreateSamplerState shadow error", NULL, MB_OK);
+			exit(true);
+		}
 	}
-
-	// サンプラーステートを生成
-	D3D11_SAMPLER_DESC desc;
-	ZeroMemory(&desc, sizeof(desc));
-	desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-	desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-	desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-	desc.BorderColor[0] = 1.0f;
-	desc.BorderColor[1] = 1.0f;
-	desc.BorderColor[2] = 1.0f;
-	desc.BorderColor[3] = 1.0f;
-	desc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
-	desc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
-	desc.MaxAnisotropy = 1;
-	desc.MipLODBias = 0;
-	desc.MinLOD = -FLT_MAX;
-	desc.MaxLOD = +FLT_MAX;
-
-	HRESULT hr = device->CreateSamplerState(&desc, &Smp);
-	if (FAILED(hr))
-	{
-		MessageBox(0, "CreateSamplerState shadow error", NULL, MB_OK);
-		exit(true);
-	}
-
 	D3D11_BUFFER_DESC cb;
 	ZeroMemory(&cb, sizeof(cb));
 	cb.ByteWidth = sizeof(CONSTANT_BUFFER);//16の倍数になるように調整
@@ -321,65 +328,68 @@ void CShadow::IndexdataForVertex(ID3D11Device* pDevice)
 	}
 }
 
-
-void CShadow::Draw(XMFLOAT4X4 World, XMFLOAT4X4 View, XMFLOAT4X4 Projection, XMMATRIX* boneMat)
+void CShadow::Draw(XMFLOAT4X4 World, XMFLOAT4X4 View, XMFLOAT4X4 Projection, CONSTANT_BONE_MATRIX* boneMat)
 {
+	DrawingAllDataShadowMap Drawdata;
+
 	constantBuffer.World = World;
 	constantBuffer.View = View;
 	constantBuffer.Projection = Projection;
+	constantBufferMatrix = *boneMat;
 
-	for (int i = 0; i < 200; i++)
-	{
-		constantBufferMatrix.boneMatrix[0] = boneMat[0];
-	}
+
+	Drawdata.constantBuffer = constantBuffer;
+	Drawdata.boneMat = constantBufferMatrix;
+	Drawdata.IndiviData = *indiviData;
+	Drawdata.sendData = VertexBufferUpdate;
+	Drawdata.pmxdata = *pmxData;
+	shadowRender.push_back(Drawdata);
 }
 
 void CShadow::Render(ID3D11DeviceContext* context)
 {
 	D3D11_MAPPED_SUBRESOURCE pdata;
 	HRESULT hr;
-	int index = 0;
-	indiviData->ReflectionData(context, indiviData->Buffer, indiviData->BoneBuffer);
-	hr = context->Map(indiviData->Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
-	if (hr == S_OK)
-		memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&constantBuffer), sizeof(constantBuffer));
-	//11/15アンビエント ok
-	context->Unmap(indiviData->Buffer, 0);
 
+	
 
-	//ボーン
-	hr = context->Map(indiviData->BoneBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
-	if (hr == S_OK)
-		memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&constantBufferMatrix), sizeof(constantBufferMatrix));
-	//11/15アンビエント ok
-	context->Unmap(indiviData->BoneBuffer, 0);
-
-	hr = context->Map(indiviData->pVerBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
-	if (hr == S_OK)
-		memcpy_s(pdata.pData, pdata.RowPitch, (void*)(VertexBufferUpdate), sizeof(PMX_SEND_DATA_SHADOW)*pmxData->s_PmxVertexNum);
-	//11/15アンビエント ok
-	context->Unmap(indiviData->pVerBuffer, 0);
-
-
-	context->DrawIndexed(0, pmxData->s_PmxVertexNum, 0);
-
-}
-
-void CShadow::ReflectionDataShadow(ID3D11DeviceContext* context)
-{
-
+	float ClearColor[4] = { 0.1f,0,0,1 };// クリア色作成　RGBAの順
+	
 	context->OMSetRenderTargets(1, &DepthMap_TexRTV, DepthMap_DSTexDSV);//ターゲット変更
 
-	UINT stride = sizeof(PMX_SEND_DATA_SHADOW);	//座標に使用するサイズ XMFloat*3 
-																	//posX,posY,posZに準ずる
-	UINT offset = 0;
+	context->ClearRenderTargetView(DepthMap_TexRTV, ClearColor);//画面クリア
 
-	context->IASetVertexBuffers(0, 1, &indiviData->pVerBuffer, &stride, &offset);
-	context->IASetIndexBuffer(indiviData->pIndBuffer, DXGI_FORMAT_R16_UINT, 0);
-	context->IASetInputLayout(indiviData->pVertexLayout);
-	context->VSSetShader(indiviData->pVertexShader, NULL, 0);
-	context->PSSetShader(indiviData->pPixelShader, NULL, 0);
-	context->VSSetConstantBuffers(0, 1, &indiviData->Buffer);
-	context->VSSetConstantBuffers(1, 1, &indiviData->BoneBuffer);
-	context->PSSetConstantBuffers(0, 1, &indiviData->Buffer);
+
+	context->ClearDepthStencilView(DepthMap_DSTexDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//深度バッファクリア
+
+	//ここにステージのレンダーする（中身消さない）
+	for (auto itr : shadowRender) {
+
+		itr.IndiviData.ReflectionDataShadow(context, itr.IndiviData.Buffer, itr.IndiviData.BoneBuffer);
+
+		hr = context->Map(itr.IndiviData.Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
+		if (hr == S_OK)
+			memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&itr.constantBuffer), sizeof(itr.constantBuffer));
+		//11/15アンビエント ok
+		context->Unmap(itr.IndiviData.Buffer, 0);
+
+
+		//ボーン
+		hr = context->Map(itr.IndiviData.BoneBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
+		if (hr == S_OK)
+			memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&itr.boneMat), sizeof(itr.boneMat));
+		//11/15アンビエント ok
+		context->Unmap(itr.IndiviData.BoneBuffer, 0);
+
+		hr = context->Map(itr.IndiviData.pVerBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata);
+		if (hr == S_OK)
+			memcpy_s(pdata.pData, pdata.RowPitch, (void*)(itr.sendData), sizeof(PMX_SEND_DATA_SHADOW)*itr.pmxdata.s_PmxVertexNum);
+		//11/15アンビエント ok
+		context->Unmap(itr.IndiviData.pVerBuffer, 0);
+
+
+		context->DrawIndexed(0, itr.pmxdata.s_PmxVertexNum, 0);
+	}
+	shadowRender.clear();
+
 }

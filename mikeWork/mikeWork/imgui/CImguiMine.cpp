@@ -1,6 +1,6 @@
 #include "CImguiMine.h"
 #include "imgui_impl_dx11.h"
-
+#include "../shadow/CShadow.h"
 
 
 void IMGUIDrawdata::Draw()
@@ -12,7 +12,11 @@ void IMGUIDrawdata::Draw()
 
 	//Ý’è
 
+	ImGui::GetWindowDrawList()->AddImage((void*)CShadow::DepthMap_TexSRV, ImVec2(200, 200), ImVec2(400, 400));
+
+
 	ImGui::Begin("operation", &show_another_window);
+
 
 	ImGui::LabelText("", "%4.2f FPS", FPS);
 	ImGui::Spacing();

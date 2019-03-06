@@ -100,14 +100,12 @@ void Director::Run(HINSTANCE hInstance)
 
 void Director::RenderRoom()
 {
-	FreChan->Cshadow->Render(m_pD3d->m_pDeviceContext);
-	Kanade->Cshadow->Render(m_pD3d->m_pDeviceContext);
-	Miku->Cshadow->Render(m_pD3d->m_pDeviceContext);
-	Ai->Cshadow->Render(m_pD3d->m_pDeviceContext);
+	m_pD3d->m_pDeviceContext->PSSetSamplers(0, 1, &SampleLinear);
+	CShadow::Render(m_pD3d->m_pDeviceContext);
 	//‚±‚±‚Å‰e•`‰æ
 	m_pD3d->Change();//ƒ^[ƒQƒbƒg•ÏX
-	m_pD3d->m_pDeviceContext->PSSetSamplers(0, 1, &SampleLinear);
 	CPmx::Render(m_pD3d->m_pDeviceContext);
+	IMGUIDrawdata::get_instance()->Draw();
 	//light->Render(m_pD3d->m_pDeviceContext);
 }
 
@@ -227,7 +225,7 @@ HRESULT Director::Init()
 	stage->setPosition(XMFLOAT3(0, 0, 0));
 
 
-	
+
 
 	//VMD
 	FrechanDance->LoadVmdFile((char*)ONESHIN, FreChan->DeliverBones(), FreChan->DeliverPmdIkData(), true);
@@ -274,6 +272,8 @@ HRESULT Director::Init()
 	Miku->Cshadow->Init(m_pD3d->m_pDevice, Miku->GetPmxData(), SHADER_SHADOWMAP, NULL, SHADER_SHADOWMAP, Miku->DeliverBones(), Miku->DeliverPmdIkData());
 
 	MikuOutline->Cshadow->Init(m_pD3d->m_pDevice, Miku->GetPmxData(), SHADER_SHADOWMAP, NULL, SHADER_SHADOWMAP, Miku->DeliverBones(), Miku->DeliverPmdIkData());
+
+
 	/*light = new CLight();
 	light->Init(m_pD3d->m_pDevice, m_pD3d->m_pDeviceContext, SHADER_POINT_LIGHT, NULL, SHADER_POINT_LIGHT);*/
 	InitInput(m_hInstance, m_pD3d->m_hWnd);
@@ -305,7 +305,6 @@ void Director::FixFPS60()
 
 void Director::Draw()
 {
-
 	//stage
 
 	stage->ProcessingCalc(m_pCamera->m_f);
@@ -340,7 +339,7 @@ void Director::Draw()
 		Miku->charDraw(m_pCamera->m_f);
 	}
 
-	IMGUIDrawdata::get_instance()->Draw();
+	
 }
 void Director::Update()
 {

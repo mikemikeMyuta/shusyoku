@@ -44,13 +44,9 @@ VS_OUT vs_main(VS_IN input)
 		comb += BoneMatrix[input.BoneIndex[i]] * input.BoneWeight[i];
 	}
 
-
-
 	P = (float3)input.pos + input.normal*0.03f;
 	
 	output.pos = mul(float4(P, 1.0f), comb);
-
-
 
 	output.pos = mul(output.pos, World);
 	output.pos = mul(output.pos, View);

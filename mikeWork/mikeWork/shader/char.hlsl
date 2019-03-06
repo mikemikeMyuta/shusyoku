@@ -111,7 +111,7 @@ PS_OUT ps_main(VS_OUT input)
 	float  shadowBias = bias + slopeScaledBias * maxDepthSlope;
 	shadowBias = min(shadowBias, depthBiasClamp);
 
-	float3 shadowColor = float3(0.25f, 0.25f, 0.25f);
+	float3 shadowColor = float3(1.0f, 0.50f, 0.7f);
 	shadowThreshold = g_shadowMap.SampleCmpLevelZero(g_samShadow, shadowCoord.xy, shadowCoord.z - shadowBias);
 	shadowColor = lerp(shadowColor, float3(1.0f, 1.0f, 1.0f), shadowThreshold);
 
@@ -146,7 +146,6 @@ PS_OUT ps_main(VS_OUT input)
 	//ハーフランバート
 
 	colDif = ambient;
-	float4 Specular = float4(1, 1, 1, 0.2f);
 	colSpe = specular * s;
 
 	float2 toonUV;
@@ -159,6 +158,7 @@ PS_OUT ps_main(VS_OUT input)
 
 	float4 shadowColorFloat4 = float4(shadowColor, 1.0f);
 	float4 SetColor = (colDif + colSpe) * shadowColorFloat4;
-	output.col = g_tex.Sample(g_samLinear, input.Tex) * toon* SetColor;
+
+	output.col = g_tex.Sample(g_samLinear, input.Tex)* toon* SetColor;
 	return output;
 }

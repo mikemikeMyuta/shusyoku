@@ -136,6 +136,9 @@ private:
 
 	PMX_VERTEX_USE_FLOAT2* UV;
 
+	XMMATRIX shadowView;
+	XMMATRIX shadowProj;
+
 
 	void PmxLoad(const LPCSTR);//データをロードするのを一括にする
 	void TexLoad(ID3D11Device*, LPSTR);//ロードされたデータを用いてテクスチャの読み込みを行う

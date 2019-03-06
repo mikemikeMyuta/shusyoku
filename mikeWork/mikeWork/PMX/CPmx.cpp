@@ -2,6 +2,8 @@
 #include "../CAMERA/Camera.h"
 #include "modelList.h"
 #include "../shadow/CShadow.h"
+#include "../imgui/CImguiMine.h"
+#include "../imgui/imgui_impl_dx11.h"
 
 map<LPCSTR, PMX_DATA> CPmx::RetrievalData;
 deque<DrawingAllDataObject> CPmx::RenderingDataObject;
@@ -24,6 +26,12 @@ void CPmx::Render(ID3D11DeviceContext *context)
 	//Other than maincharcter Rendering
 	for (auto itr : RenderingDataObject)
 	{
+		if (itr.ShadowMap != NULL) {
+			ID3D11ShaderResourceView* ShadowMap[] = { itr.ShadowMap };
+			context->PSSetShaderResources(1, 1, ShadowMap);
+		}
+		context->PSSetSamplers(1, 1, &itr.smp);
+
 		int index = 0;
 		//コンテキストデータを反映
 		itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer);
@@ -50,8 +58,11 @@ void CPmx::Render(ID3D11DeviceContext *context)
 	//clear RenderingDataObject 
 	RenderingDataObject.clear();
 
+
 	for (auto itr : RenderingDataMain)
 	{
+
+
 		HRESULT hr;
 		int index = 0;
 
@@ -80,8 +91,9 @@ void CPmx::Render(ID3D11DeviceContext *context)
 
 		if (itr.ShadowMap != NULL) {
 			ID3D11ShaderResourceView* ShadowMap[] = { itr.ShadowMap };
-			context->PSSetShaderResources(3, 1, ShadowMap);
+			context->PSSetShaderResources(2, 1, ShadowMap);
 		}
+		context->PSSetSamplers(1, 1, &itr.smp);
 
 		for (int i = 0; i < itr.pmxdata.s_PmxMaterialNum; i++)
 		{
@@ -121,6 +133,8 @@ void CPmx::Draw(const PMX_DATA data, const CONSTANT_BUFFER_OBJECT cbo, const Obj
 	DrawingData.pmxdata = data;//PMXデータを格納
 	DrawingData.constantBuffer = cbo;
 	DrawingData.IndiviData = *IndiviData;
+	DrawingData.ShadowMap = CShadow::DepthMap_TexSRV;
+	DrawingData.smp = CShadow::Smp;
 	DrawingData.Texture = TexData;
 	RenderingDataObject.push_back(DrawingData);//pushBack
 }
@@ -134,10 +148,9 @@ void CPmx::Draw(const PMX_DATA data, const CONSTANT_BUFFER_MAINCHARCTER cbo, con
 	DrawingData.IndiviData = *IndiviData;
 	DrawingData.Texture = TexData;
 	DrawingData.sendData = VertexBufferUpdate;
-	DrawingData.ShadowMap = Cshadow->DepthMap_TexSRV;
+	DrawingData.ShadowMap = CShadow::DepthMap_TexSRV;
+	DrawingData.smp = CShadow::Smp;
 	RenderingDataMain.push_back(DrawingData);//pushBack
-
-
 }
 
 void CPmx::Draw(const PMX_DATA data, const CONSTANT_BUFFER cbo, const ObjectIndividualData *IndiviData)
@@ -278,7 +291,7 @@ void CPmx::SetPmxUsingPixelShader(ID3D11Device* m_pDevice, const LPCWSTR shaderN
 	{
 		MessageBox(0, (LPSTR)pErrors->GetBufferPointer(), NULL, MB_OK);
 		exit(true);
-}
+	}
 	OutputDebugString("\nPShlsl読み込み成功\n");
 
 	hr = m_pDevice->CreatePixelShader(pCompilePS->GetBufferPointer(), pCompilePS->GetBufferSize(), NULL, &IndiviData->pPixelShader);
@@ -317,7 +330,7 @@ void  CPmx::SetPmxUsingVertexShader(ID3D11Device* m_pDevice, const LPCWSTR shade
 	{
 		MessageBox(0, (LPSTR)pErrors->GetBufferPointer(), NULL, MB_OK);
 		exit(true);
-}
+	}
 	OutputDebugString("\nVShlsl読み込み成功\n");
 	hr = m_pDevice->CreateVertexShader(pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), NULL, &IndiviData->pVertexShader);
 
@@ -524,6 +537,12 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 			return;
 		}
 	}
+
+	XMVECTOR vEyePt = XMVectorSet(10, 10, 10, 1.0f);//
+	XMVECTOR vLookatPt = XMVectorSet(IMGUIDrawdata::getCameraGaze().x, IMGUIDrawdata::getCameraGaze().y, IMGUIDrawdata::getCameraGaze().z, 1.0f);;//注視位置
+	XMVECTOR vUpVec = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);//上方位置
+	shadowView = XMMatrixLookAtLH(vEyePt, vLookatPt, vUpVec);
+	shadowProj = XMMatrixPerspectiveFovLH(XM_PI / 2, (FLOAT)WINDOW_WIDTH / (FLOAT)WINDOW_HEIGHT, 0.1f, 100000.0f);
 	if (type == DrawingType::player) {
 		IMGUIDrawdata::get_instance()->setMorphNum(MorphNum, MorphNumdata);
 		IMGUIDrawdata::get_instance()->setMorphMaxIndex(m_pmx_data.s_PmxMorphNum, MorphNumdata);
@@ -570,16 +589,25 @@ void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 
 	//11/10　コンスタンスバッファ別で作成
 
+
+
 	//計算処理をする その後 call Draw func
 	switch (type)
 	{
 	case player:
+		XMVECTOR vEyePt = XMVectorSet(IMGUIDrawdata::getLightDir().x, IMGUIDrawdata::getLightDir().y, IMGUIDrawdata::getLightDir().z, 1.0f);//
+		XMVECTOR vLookatPt = XMVectorSet(0, 0, 0, 1.0f);;//注視位置
+		//XMVECTOR vLookatPt = XMVectorSet(IMGUIDrawdata::getCameraGaze().x, IMGUIDrawdata::getCameraGaze().y, IMGUIDrawdata::getCameraGaze().z, 1.0f);;//注視位置
+		XMVECTOR vUpVec = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);//上方位置
+		shadowView = XMMatrixLookAtLH(vEyePt, vLookatPt, vUpVec);
+		shadowProj = XMMatrixPerspectiveFovLH(XM_PI / 2, (FLOAT)DEPTHTEX_WIDTH / (FLOAT)DEPTHTEX_WIDTH, 0.1f, 100000.0f);
+		XMMATRIX shadowMapMat = shadowView * shadowProj*SHADOW_BIAS;
 	case shadow:
 		workmat = rotemat * objectPos * workmat;
 		data = updateVerBuf(&workmat);
 		//keepMat = XMMatrixInverse(&useInverse, workmat);
 
-		XMMATRIX shadowMapMat = Camera::m_mView*Camera::m_mProj*SHADOW_BIAS;
+
 		//この下消すと追従カメラに
 		//Camera::m_mView = Camera::m_mView*keepMat;
 
@@ -598,13 +626,24 @@ void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 		}
 
 		Draw(m_pmx_data, cbm, cbmr, IndiviData);//insert data
-		if (type == player)
-			Cshadow->Draw(cbm.World, cbm.View, cbm.Projection, cbmr.boneMatrix);
-
+		if (type == player) {
+			XMFLOAT4X4 workView, workProj;
+			XMStoreFloat4x4(&workView, XMMatrixTranspose(shadowView));
+			XMStoreFloat4x4(&workProj, XMMatrixTranspose(shadowProj));
+			Cshadow->Draw(cbm.World, workView, workProj, &cbmr);
+		}
 		//OutputDebugString("\n SetPlayerData\n");
 
 		break;
 	case object:
+
+		vEyePt = XMVectorSet(IMGUIDrawdata::getLightDir().x, IMGUIDrawdata::getLightDir().y, IMGUIDrawdata::getLightDir().z, 1.0f);//
+		vLookatPt = XMVectorSet(0, 0, 0, 1.0f);;//注視位置
+		vUpVec = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);//上方位置
+		shadowView = XMMatrixLookAtLH(vEyePt, vLookatPt, vUpVec);
+		shadowProj = XMMatrixPerspectiveFovLH(XM_PI / 2, (FLOAT)DEPTHTEX_WIDTH / (FLOAT)DEPTHTEX_WIDTH, 0.1f, 100000.0f);
+		shadowMapMat = shadowView * shadowProj*SHADOW_BIAS;
+
 		workmat = rotemat * objectPos * workmat;
 		XMStoreFloat4x4(&cbo.World, XMMatrixTranspose(workmat));
 		XMStoreFloat4x4(&cbo.View, XMMatrixTranspose(Camera::m_mView));
@@ -614,6 +653,7 @@ void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 		XMStoreFloat4(&cbo.specular, XMLoadFloat4((const XMFLOAT4*)&specular.data));
 		XMStoreFloat3(&cbo.light_dir, XMLoadFloat3((const XMFLOAT3*)&light_dir));
 		XMStoreFloat3(&cbo.camera_pos, XMLoadFloat3((const XMFLOAT3*)&camerapos));
+		XMStoreFloat4x4(&cbo.shadow, XMMatrixTranspose(shadowMapMat));
 		Draw(m_pmx_data, cbo, IndiviData);//insert data
 
 		//OutputDebugString("\n SetObjectData\n");
@@ -933,4 +973,20 @@ void ObjectIndividualData::ReflectionData(ID3D11DeviceContext* context, ID3D11Bu
 	context->VSSetConstantBuffers(1, 1, &constantBoneBuffer);
 	context->PSSetConstantBuffers(0, 1, &constantBuffer);
 	context->RSSetState(pRasterizerState);
+}
+
+
+void ObjectIndividualData::ReflectionDataShadow(ID3D11DeviceContext* context, ID3D11Buffer* constantBuffer, ID3D11Buffer* constantBoneBuffer)
+{
+	UINT stride = sizeof(PMX_SEND_DATA_SHADOW);	//座標に使用するサイズ XMFloat*3 
+																	//posX,posY,posZに準ずる
+	UINT offset = 0;
+
+	context->IASetVertexBuffers(0, 1, &pVerBuffer, &stride, &offset);
+	context->IASetIndexBuffer(pIndBuffer, DXGI_FORMAT_D24_UNORM_S8_UINT, 0);
+	context->IASetInputLayout(pVertexLayout);
+	context->VSSetShader(pVertexShader, NULL, 0);
+	context->PSSetShader(pPixelShader, NULL, 0);
+	context->VSSetConstantBuffers(0, 1, &Buffer);
+	context->VSSetConstantBuffers(1, 1, &BoneBuffer);
 }

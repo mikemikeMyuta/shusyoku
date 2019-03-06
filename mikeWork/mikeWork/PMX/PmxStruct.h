@@ -351,6 +351,7 @@ public:
 
 	void ReflectionData(ID3D11DeviceContext*, ID3D11Buffer*);//contextに格納
 	void ReflectionData(ID3D11DeviceContext*, ID3D11Buffer*, ID3D11Buffer*);//contextに格納
+	void ReflectionDataShadow(ID3D11DeviceContext*, ID3D11Buffer*, ID3D11Buffer*); 
 
 };
 
@@ -366,6 +367,7 @@ struct CONSTANT_BUFFER_OBJECT //コンスタンスバッファ object
 	XMFLOAT4 specular;
 	XMFLOAT3 light_dir;
 	XMFLOAT3 camera_pos;
+	XMFLOAT4X4 shadow;
 #pragma pack(pop)	
 	//11/15以後やる
 };
@@ -404,6 +406,8 @@ struct DrawingAllDataObject//描画時に必要なデータ
 	PmxStruct::PMX_DATA pmxdata;//オブジェクトデータ
 	CONSTANT_BUFFER_OBJECT constantBuffer;//コンスタンスバッファ
 	ObjectIndividualData IndiviData;
+	ID3D11ShaderResourceView* ShadowMap;//シャドウマップ
+	ID3D11SamplerState* smp;
 	vector<ID3D11ShaderResourceView*> Texture;//テクスチャ
 };
 
@@ -415,6 +419,7 @@ struct DrawingAllDataMainCharcter//描画時に必要なデータ
 	ObjectIndividualData IndiviData;
 	vector<ID3D11ShaderResourceView*> Texture;//テクスチャ
 	ID3D11ShaderResourceView* ShadowMap;//シャドウマップ
+	ID3D11SamplerState* smp;
 	PmxStruct::PMX_SEND_DATA *sendData;
 };
 

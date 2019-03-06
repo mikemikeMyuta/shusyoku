@@ -79,6 +79,10 @@ public:
 	{
 		cameraGaze = data;
 	}
+	static DirectX::XMFLOAT3 getCameraGaze()
+	{
+		return cameraGaze;
+	}
 
 	static void setMorphNum(unsigned int data,unsigned int num)
 	{
