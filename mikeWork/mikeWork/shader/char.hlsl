@@ -111,7 +111,7 @@ PS_OUT ps_main(VS_OUT input)
 	float  shadowBias = bias + slopeScaledBias * maxDepthSlope;
 	shadowBias = min(shadowBias, depthBiasClamp);
 
-	float3 shadowColor = float3(1.0f, 0.50f, 0.7f);
+	float3 shadowColor = float3(0.7f, 0.3f, 0.5f);
 	shadowThreshold = g_shadowMap.SampleCmpLevelZero(g_samShadow, shadowCoord.xy, shadowCoord.z - shadowBias);
 	shadowColor = lerp(shadowColor, float3(1.0f, 1.0f, 1.0f), shadowThreshold);
 

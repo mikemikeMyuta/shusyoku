@@ -7,16 +7,28 @@ void IMGUIDrawdata::Draw()
 {
 	ImGui_ImplDX11_NewFrame();
 	//‘å‚«‚³êŠİ’è
-	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(310, 260), ImGuiSetCond_Once);
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Once);
 
 	//İ’è
+	ImGui::Begin("shadowMap", &show_another_window);
+	ImGui::GetWindowDrawList()->AddImage((void*)CShadow::DepthMap_TexSRV, ImVec2(10, 20), ImVec2(290, 240));
+	ImGui::End();
 
-	ImGui::GetWindowDrawList()->AddImage((void*)CShadow::DepthMap_TexSRV, ImVec2(200, 200), ImVec2(400, 400));
+	//‘å‚«‚³êŠİ’è
+	ImGui::SetNextWindowSize(ImVec2(310, 260), ImGuiSetCond_Once);
+	ImGui::SetNextWindowPos(ImVec2(0, 320), ImGuiSetCond_Once);
 
+	ImGui::Begin("DrawMap", &show_another_window);
+	ImGui::GetWindowDrawList()->AddImage((void*)DrawRTV, ImVec2(10, 340), ImVec2(290, 560));
+	ImGui::End();
 
+	//‘å‚«‚³êŠİ’è
+	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiSetCond_Once);
+	ImGui::SetNextWindowPos(ImVec2(0, 600), ImGuiSetCond_Once);
+
+	//İ’è
 	ImGui::Begin("operation", &show_another_window);
-
 
 	ImGui::LabelText("", "%4.2f FPS", FPS);
 	ImGui::Spacing();

@@ -1,3 +1,14 @@
+// 定数バッファ(CPU側からの値受け取り場)
+
+//グローバル
+Texture2D g_tex: register(t0);//テクスチャー
+Texture2D g_texAni: register(t1);//テクスチャー
+Texture2D g_shadowMap: register(t2);//テクスチャー
+
+SamplerState g_samLinear : register(s0);//サンプラー
+SamplerComparisonState g_samShadow : register(s1);//サンプラー
+
+
 //コンスタンスバッファ
 cbuffer  global: register(b0) {
 	float4x4 World;    // 変換行列
@@ -20,7 +31,7 @@ struct VS_IN
 struct VS_OUT
 {
 	float4 pos : SV_POSITION;
-	float4 depth : TEXCOORD0;
+	float4 depth : TEXCOORD;
 };
 //------------------------------------------------
 // 頂点シェーダ
@@ -49,16 +60,16 @@ VS_OUT vs_main(VS_IN input)
 
 struct PS_OUT
 {
-	float4 col : SV_TARGET0;
+	float4 col : SV_Target;
 };
 
 //------------------------------------------------
 // ピクセルシェーダ
 //------------------------------------------------
-PS_OUT ps_main(VS_OUT input)
+float4 ps_main(VS_OUT input) :SV_Target
 {
 	// Z値を出力カラーとする
-	PS_OUT out_color;
-	out_color.col = input.depth.z / input.depth.w;
+	float4 out_color;
+	out_color= input.depth.z / input.depth.w;
 	return out_color;
 }

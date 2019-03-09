@@ -107,6 +107,10 @@ void Director::RenderRoom()
 	CPmx::Render(m_pD3d->m_pDeviceContext);
 	IMGUIDrawdata::get_instance()->Draw();
 	//light->Render(m_pD3d->m_pDeviceContext);
+	//テクスチャクリア
+	m_pD3d->m_pDeviceContext->OMSetRenderTargets(1, &m_pD3d->m_pBackBuffer_TexRTV, nullptr);
+	ID3D11ShaderResourceView *const pSRV[3] = { NULL,NULL,NULL };
+	m_pD3d->m_pDeviceContext->PSSetShaderResources(0, 3, pSRV);
 }
 
 void Director::MainLoop()
@@ -281,6 +285,9 @@ HRESULT Director::Init()
 	//imgui
 	ImGui::CreateContext();//これないとエラー出るよ！ getIOで
 	ImGui_ImplDX11_Init(m_pD3d->m_hWnd, m_pD3d->m_pDevice, m_pD3d->m_pDeviceContext);
+
+
+
 	return S_OK;
 }
 

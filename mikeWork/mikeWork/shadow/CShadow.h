@@ -74,7 +74,7 @@ public:
 private:
 	static ID3D11Texture2D *DepthMap_Tex;
 	static ID3D11Texture2D *DepthMap_DSTex;
-
+	static D3D11_VIEWPORT viewport;
 
 
 

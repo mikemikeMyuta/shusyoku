@@ -29,10 +29,11 @@
 #pragma warning(disable : 4005)
 #pragma warning(disable : 4244)
 #pragma warning(disable : 4838)
+#pragma warning(disable : 4316)
 
 
-#define WINDOW_WIDTH 1920
-#define WINDOW_HEIGHT 1080
+#define WINDOW_WIDTH (1080)
+#define WINDOW_HEIGHT (720)
 #define SAFE_DELETE(p) { if(p) { delete (p); (p)=NULL; } }
 #define SAFE_DELETE_ARRAY(p) { if(p) { delete[] (p); (p)=NULL; } }
 #define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }

@@ -43,7 +43,7 @@ public:
 	void AdvanceTime();
 	void timeset(float timedif)
 	{
-		time = timedif;
+		time = (int)timedif;
 	}
 };
 

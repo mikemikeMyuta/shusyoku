@@ -1,6 +1,7 @@
 #pragma once
 
 #include <DirectXMath.h>
+#include <d3d11.h>
 
 #define ANIMATION_CHAR_NUM (4)
 
@@ -22,7 +23,7 @@ private:
 	static bool MorphFlag[ANIMATION_CHAR_NUM];//モーフ実行するか否か
 	static  int MorphMAXIndex[ANIMATION_CHAR_NUM];//モーフの最大数
 	static  bool ModelDisplay[ANIMATION_CHAR_NUM];//モデルを表示するか
-
+	static ID3D11ShaderResourceView *DrawRTV;
 public:
 	IMGUIDrawdata(const IMGUIDrawdata&) = delete;
 	IMGUIDrawdata& operator=(const IMGUIDrawdata&) = delete;
@@ -113,7 +114,11 @@ public:
 	{
 		return ModelDisplay[num];
 	}
-
+	
+	static void setDrawRTV(ID3D11ShaderResourceView* data)
+	{
+		DrawRTV = data;
+	}
 	static void Draw();
 };
 

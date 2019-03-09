@@ -1,6 +1,10 @@
 #include"ConfigurationDirectX11.h"
 #include "../CAMERA/Camera.h"
 #include <random>
+#include "../imgui/CImguiMine.h"
+
+ D3D11_VIEWPORT DIRECT3D11::vp;
+ ID3D11ShaderResourceView*  DIRECT3D11::TexSRV;//これを使う
 
 DIRECT3D11::DIRECT3D11()
 {
@@ -22,6 +26,7 @@ DIRECT3D11::~DIRECT3D11()
 
 HRESULT DIRECT3D11::Init(D3D_INIT* pcd)
 {
+		HRESULT hr;
 	m_hWnd = pcd->hWnd;
 	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory(&sd, sizeof(sd));
@@ -40,7 +45,7 @@ HRESULT DIRECT3D11::Init(D3D_INIT* pcd)
 	D3D_FEATURE_LEVEL pFeatureLevels = D3D_FEATURE_LEVEL_11_0;
 
 	UINT cdev_flag = 0;
-#ifdef _Debug
+#ifdef _DEBUG
 	cdev_flag |= D3D11_CREATE_DEVICE_DEBUG; // 更新して解除しておく
 #endif
 	if (FAILED(D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL,
@@ -51,13 +56,16 @@ HRESULT DIRECT3D11::Init(D3D_INIT* pcd)
 	}
 	//各種テクスチャーと、それに付帯する各種ビューを作成
 	 
+
 	//バックバッファーテクスチャーを取得（既にあるので作成ではない）
 	ID3D11Texture2D *pBackBuffer_Tex;
+
+
 	m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer_Tex);
 	//そのテクスチャーに対しレンダーターゲットビュー(RTV)を作成
 	m_pDevice->CreateRenderTargetView(pBackBuffer_Tex, NULL, &m_pBackBuffer_TexRTV);
 	//m_pDevice->CreateRenderTargetView(pBackBuffer_Tex, NULL, &m_pDrawingLikeAnime);
-	SAFE_RELEASE(pBackBuffer_Tex);
+	//SAFE_RELEASE(pBackBuffer_Tex);
 
 	//デプスステンシルビュー用のテクスチャーを作成
 	D3D11_TEXTURE2D_DESC descDepth;
@@ -78,6 +86,9 @@ HRESULT DIRECT3D11::Init(D3D_INIT* pcd)
 
 	//レンダーターゲットビューとデプスステンシルビューをパイプラインにセット
 	m_pDeviceContext->OMSetRenderTargets(1, &m_pBackBuffer_TexRTV, m_pBuckBuffer_DSTexDSV);
+	
+	
+
 
 	//深度ステンシルステートを作成
 	D3D11_DEPTH_STENCIL_DESC dc;
@@ -147,6 +158,7 @@ HRESULT DIRECT3D11::Init(D3D_INIT* pcd)
 }
 void DIRECT3D11::Change()
 {
+	
 	m_pDeviceContext->OMSetRenderTargets(1, &m_pBackBuffer_TexRTV, m_pBuckBuffer_DSTexDSV);
 }
 void DIRECT3D11::Clear()

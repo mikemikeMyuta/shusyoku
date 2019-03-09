@@ -14,7 +14,7 @@ using namespace PmxStruct;
 using namespace std;
 
 //ç\ë¢ëÃ
-
+#pragma warning(disable : 4316)
 
 enum DrawingType
 {

@@ -104,7 +104,7 @@ PS_OUT ps_main(VS_OUT input)
 	float  shadowBias = bias + slopeScaledBias * maxDepthSlope;
 	shadowBias = min(shadowBias, depthBiasClamp);
 
-	float3 shadowColor = float3(0.8f, 0.4f, 0.8f);
+	float3 shadowColor = float3(0.7f, 0.3f, 0.5f);
 	shadowThreshold = g_shadowMap.SampleCmpLevelZero(g_samShadow, shadowCoord.xy, shadowCoord.z - shadowBias);
 	shadowColor = lerp(shadowColor, float3(1.0f, 1.0f, 1.0f), shadowThreshold);
 
@@ -136,7 +136,7 @@ PS_OUT ps_main(VS_OUT input)
 	float4 SetColor = (colDif + colSpe) * shadowColorFloat4;
 	//(11/15)shader ok Ç±ÇÍÇ…çáÇ§ÇÊÇ§Ç…çÏÇËë÷Ç¶ÇÈÉ\Å[ÉX
 
-	output.col = g_tex.Sample(g_samLinear, input.Tex) *shadowColorFloat4;
+	output.col = g_tex.Sample(g_samLinear, input.Tex) *SetColor;
 
 	return output;
 }

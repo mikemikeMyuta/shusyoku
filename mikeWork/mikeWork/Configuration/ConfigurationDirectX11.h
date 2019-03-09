@@ -48,8 +48,8 @@ public:
 
 	ID3D11Buffer *VerBuffer;
 	ID3D11Buffer *IndBuffer;
-	D3D11_VIEWPORT vp;
-
+	static D3D11_VIEWPORT vp;
+	static ID3D11ShaderResourceView*  TexSRV;//‚±‚ê‚ðŽg‚¤
 	ReturnClientRect CRdata;
 
 	//Method

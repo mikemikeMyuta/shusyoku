@@ -1,4 +1,5 @@
 #include "CImguiMine.h"
+#include <d3d11.h>
 
 IMGUIDrawdata* IMGUIDrawdata::instance;
 int IMGUIDrawdata::animationSpeed;//アニメーション速度一括管理
@@ -12,3 +13,4 @@ int IMGUIDrawdata::MorphNum[ANIMATION_CHAR_NUM];//モーフ番号格納
 bool IMGUIDrawdata::MorphFlag[ANIMATION_CHAR_NUM] = { true,true ,true ,true };//モーフ実行するか否か
 int IMGUIDrawdata::MorphMAXIndex[ANIMATION_CHAR_NUM];//モーフの最大数
 bool IMGUIDrawdata::ModelDisplay[ANIMATION_CHAR_NUM] = { true,true ,true ,true };//モデルを表示するか
+ID3D11ShaderResourceView *IMGUIDrawdata::DrawRTV;

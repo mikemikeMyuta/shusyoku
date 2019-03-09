@@ -7,6 +7,8 @@ ID3D11ShaderResourceView* CShadow::DepthMap_TexSRV;
 ID3D11SamplerState *CShadow::Smp;
 ID3D11Texture2D *CShadow::DepthMap_Tex;
 ID3D11Texture2D *CShadow::DepthMap_DSTex;
+D3D11_VIEWPORT CShadow::viewport;
+
 
 CShadow::CShadow()
 {
@@ -47,13 +49,14 @@ void CShadow::Init(ID3D11Device *device, PmxStruct::PMX_DATA *PmxData, const LPC
 	{
 		HRESULT hr;
 		//深度マップテクスチャーを作成
-		D3D11_TEXTURE2D_DESC tdesc;// テクスチャリソース記述用構造体（どんなテックすちゃリソースを作るかということ）
+		D3D11_TEXTURE2D_DESC tdesc;// テクスチャリソース記述用構造体（どんなテクスチャリソースを作るかということ）
 		ZeroMemory(&tdesc, sizeof(D3D11_TEXTURE2D_DESC));	// ゼロクリア
 		tdesc.Width = DEPTHTEX_WIDTH;			// 幅（単位：ピクセル）
 		tdesc.Height = DEPTHTEX_HEIGHT;			// 幅（単位：ピクセル）	
 		tdesc.MipLevels = 1;					// ミップマップレベルの最大数
 		tdesc.ArraySize = 1;					// 配列数
 		tdesc.MiscFlags = 0;					// 一般性の低いリソースオプション（０：未使用）
+		//tdesc.Format = DXGI_FORMAT_GG8B8_UNORM;		// ３２ビット浮動小数点フォーマット
 		tdesc.Format = DXGI_FORMAT_R32_FLOAT;		// ３２ビット浮動小数点フォーマット
 		tdesc.SampleDesc.Count = 1;				// サンプリングの数
 		tdesc.SampleDesc.Quality = 0;				// サンプリングの品質
@@ -144,6 +147,14 @@ void CShadow::Init(ID3D11Device *device, PmxStruct::PMX_DATA *PmxData, const LPC
 			MessageBox(0, "CreateSamplerState shadow error", NULL, MB_OK);
 			exit(true);
 		}
+
+		viewport.TopLeftX = 0.0f;
+		viewport.TopLeftY = 0.0f;
+		viewport.Width = DEPTHTEX_WIDTH;
+		viewport.Height = DEPTHTEX_HEIGHT;
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+
 	}
 	D3D11_BUFFER_DESC cb;
 	ZeroMemory(&cb, sizeof(cb));
@@ -160,13 +171,12 @@ void CShadow::Init(ID3D11Device *device, PmxStruct::PMX_DATA *PmxData, const LPC
 		return;
 	}
 	else {
-		OutputDebugString("\CreateBuffer成功\n");
+		OutputDebugString("\nCreateBuffer成功\n");
 	}
 
 	//データ同期
 	SetBone(animeBone);
 	SetPmdIKdata(pmdIkData);
-
 }
 
 void CShadow::CreateShadowLayout(ID3D11Device* Device)
@@ -292,16 +302,16 @@ void CShadow::IndexdataForVertex(ID3D11Device* pDevice)
 
 	VertexBufferUpdate = new PMX_SEND_DATA_SHADOW[pmxData->s_PmxVertexNum];
 
-	for (int i = 0; i < pmxData->s_PmxVertexNum; i++)
+	for (UINT i = 0; i < pmxData->s_PmxVertexNum; i++)
 	{
 		VertexBufferUpdate[i].pos[0] = MmdStruct::scale*pmxData->s_pPmxVertex[i].Position[0];
 		VertexBufferUpdate[i].pos[1] = MmdStruct::scale*pmxData->s_pPmxVertex[i].Position[1];
 		VertexBufferUpdate[i].pos[2] = MmdStruct::scale*pmxData->s_pPmxVertex[i].Position[2];
 
-		VertexBufferUpdate[i].boneIndex[0] = pmxData->s_pPmxVertex[i].BoneIndex[0];
-		VertexBufferUpdate[i].boneIndex[1] = pmxData->s_pPmxVertex[i].BoneIndex[1];
-		VertexBufferUpdate[i].boneIndex[2] = pmxData->s_pPmxVertex[i].BoneIndex[2];
-		VertexBufferUpdate[i].boneIndex[3] = pmxData->s_pPmxVertex[i].BoneIndex[3];
+		VertexBufferUpdate[i].boneIndex[0] = (float)pmxData->s_pPmxVertex[i].BoneIndex[0];
+		VertexBufferUpdate[i].boneIndex[1] = (float)pmxData->s_pPmxVertex[i].BoneIndex[1];
+		VertexBufferUpdate[i].boneIndex[2] = (float)pmxData->s_pPmxVertex[i].BoneIndex[2];
+		VertexBufferUpdate[i].boneIndex[3] = (float)pmxData->s_pPmxVertex[i].BoneIndex[3];
 
 		VertexBufferUpdate[i].boneWeight[0] = pmxData->s_pPmxVertex[i].BoneWeight[0];
 		VertexBufferUpdate[i].boneWeight[1] = pmxData->s_pPmxVertex[i].BoneWeight[1];
@@ -319,7 +329,6 @@ void CShadow::IndexdataForVertex(ID3D11Device* pDevice)
 	D3D11_SUBRESOURCE_DATA data_vertex;
 	ZeroMemory(&data_vertex, sizeof(data_vertex));
 	data_vertex.pSysMem = VertexBufferUpdate;//vertex格納
-
 
 	if (FAILED(pDevice->CreateBuffer(&bd_vertex, &data_vertex, &indiviData->pVerBuffer)))
 	{
@@ -352,15 +361,14 @@ void CShadow::Render(ID3D11DeviceContext* context)
 	HRESULT hr;
 
 	
-
-	float ClearColor[4] = { 0.1f,0,0,1 };// クリア色作成　RGBAの順
-	
+	ID3D11ShaderResourceView *const pSRV[3] = { NULL,NULL,NULL };
+	context->PSSetShaderResources(0, 2, pSRV);
+	float ClearColor[4] = { 0,1,1,1 };// クリア色作成　RGBAの順
+	context->ClearRenderTargetView(DepthMap_TexRTV, ClearColor);//画面クリア
+	context->ClearDepthStencilView(DepthMap_DSTexDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//深度バッファクリア
 	context->OMSetRenderTargets(1, &DepthMap_TexRTV, DepthMap_DSTexDSV);//ターゲット変更
 
-	context->ClearRenderTargetView(DepthMap_TexRTV, ClearColor);//画面クリア
-
-
-	context->ClearDepthStencilView(DepthMap_DSTexDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//深度バッファクリア
+	context->RSSetViewports(1, &viewport);
 
 	//ここにステージのレンダーする（中身消さない）
 	for (auto itr : shadowRender) {
@@ -390,6 +398,10 @@ void CShadow::Render(ID3D11DeviceContext* context)
 
 		context->DrawIndexed(0, itr.pmxdata.s_PmxVertexNum, 0);
 	}
+
 	shadowRender.clear();
 
+	ID3D11RenderTargetView* nullRTV = nullptr;
+	context->OMSetRenderTargets(1, &DepthMap_TexRTV, nullptr);
+	context->PSSetShaderResources(0, 3, pSRV);
 }

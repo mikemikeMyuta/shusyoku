@@ -23,14 +23,16 @@ void CPmx::Render(ID3D11DeviceContext *context)
 	RenderingDataShadow.clear();
 	//ここでターゲット戻す
 
+	context->RSSetViewports(1, &DIRECT3D11::vp);
+
 	//Other than maincharcter Rendering
 	for (auto itr : RenderingDataObject)
 	{
 		if (itr.ShadowMap != NULL) {
-			ID3D11ShaderResourceView* ShadowMap[] = { itr.ShadowMap };
-			context->PSSetShaderResources(1, 1, ShadowMap);
+			context->PSSetShaderResources(1, 1, &itr.ShadowMap);
+			context->PSSetSamplers(1, 1, &itr.smp);
 		}
-		context->PSSetSamplers(1, 1, &itr.smp);
+
 
 		int index = 0;
 		//コンテキストデータを反映
@@ -90,10 +92,10 @@ void CPmx::Render(ID3D11DeviceContext *context)
 		itr.IndiviData.ReflectionData(context, itr.IndiviData.Buffer, itr.IndiviData.BoneBuffer);
 
 		if (itr.ShadowMap != NULL) {
-			ID3D11ShaderResourceView* ShadowMap[] = { itr.ShadowMap };
-			context->PSSetShaderResources(2, 1, ShadowMap);
+			context->PSSetShaderResources(2, 1, &itr.ShadowMap);
+			context->PSSetSamplers(1, 1, &itr.smp);
 		}
-		context->PSSetSamplers(1, 1, &itr.smp);
+
 
 		for (int i = 0; i < itr.pmxdata.s_PmxMaterialNum; i++)
 		{
@@ -102,6 +104,7 @@ void CPmx::Render(ID3D11DeviceContext *context)
 					ID3D11ShaderResourceView* Textures[] = { itr.Texture[itr.pmxdata.s_pPmxMaterial[i].TextureIndex], itr.Texture[itr.pmxdata.s_pPmxMaterial[i].ToonTextureIndex] }; //格納
 
 					context->PSSetShaderResources(0, 2, Textures);//テクスチャ張りかえる
+				
 				}
 				else
 				{
@@ -119,9 +122,11 @@ void CPmx::Render(ID3D11DeviceContext *context)
 			//テクスチャを張り替えるため　だすIndexの数　出す場所を書き込む
 			index += itr.pmxdata.s_pPmxMaterial[i].MaterialFaceNum;//現在総数を格納
 
+			//テクスチャ確認
+			
 		}
 
-
+		IMGUIDrawdata::get_instance()->setDrawRTV(itr.Texture[itr.pmxdata.s_pPmxMaterial[7].TextureIndex]);
 	}
 	RenderingDataMain.clear();
 
@@ -472,7 +477,7 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 			return;
 		}
 		else {
-			OutputDebugString("\CreateBuffer成功\n");
+			OutputDebugString("\nCreateBuffer成功\n");
 		}
 
 		Cshadow->indiviData->BoneBuffer = IndiviData->BoneBuffer;
@@ -498,7 +503,7 @@ void CPmx::Init(ID3D11Device *device, const LPCSTR ModelName, const LPCWSTR psSh
 		return;
 	}
 	else {
-		OutputDebugString("\CreateBuffer成功\n");
+		OutputDebugString("\nCreateBuffer成功\n");
 	}
 
 	//VMDで使う
@@ -596,12 +601,12 @@ void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 	{
 	case player:
 		XMVECTOR vEyePt = XMVectorSet(IMGUIDrawdata::getLightDir().x, IMGUIDrawdata::getLightDir().y, IMGUIDrawdata::getLightDir().z, 1.0f);//
-		XMVECTOR vLookatPt = XMVectorSet(0, 0, 0, 1.0f);;//注視位置
+		XMVECTOR vLookatPt = XMVectorSet(0, 2, 0, 1.0f);;//注視位置
 		//XMVECTOR vLookatPt = XMVectorSet(IMGUIDrawdata::getCameraGaze().x, IMGUIDrawdata::getCameraGaze().y, IMGUIDrawdata::getCameraGaze().z, 1.0f);;//注視位置
 		XMVECTOR vUpVec = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);//上方位置
 		shadowView = XMMatrixLookAtLH(vEyePt, vLookatPt, vUpVec);
-		shadowProj = XMMatrixPerspectiveFovLH(XM_PI / 2, (FLOAT)DEPTHTEX_WIDTH / (FLOAT)DEPTHTEX_WIDTH, 0.1f, 100000.0f);
-		XMMATRIX shadowMapMat = shadowView * shadowProj*SHADOW_BIAS;
+		shadowProj = XMMatrixPerspectiveFovLH(XM_PI / 4, (FLOAT)DEPTHTEX_WIDTH / (FLOAT)DEPTHTEX_HEIGHT, 1.0f, 1000.0f);
+		XMMATRIX shadowMapMat = shadowView * shadowProj *SHADOW_BIAS;
 	case shadow:
 		workmat = rotemat * objectPos * workmat;
 		data = updateVerBuf(&workmat);
@@ -641,7 +646,7 @@ void CPmx::ProcessingCalc(XMFLOAT3 cameraPos)
 		vLookatPt = XMVectorSet(0, 0, 0, 1.0f);;//注視位置
 		vUpVec = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);//上方位置
 		shadowView = XMMatrixLookAtLH(vEyePt, vLookatPt, vUpVec);
-		shadowProj = XMMatrixPerspectiveFovLH(XM_PI / 2, (FLOAT)DEPTHTEX_WIDTH / (FLOAT)DEPTHTEX_WIDTH, 0.1f, 100000.0f);
+		shadowProj = XMMatrixPerspectiveFovLH(XM_PI / 4, (FLOAT)DEPTHTEX_WIDTH / (FLOAT)DEPTHTEX_HEIGHT, 0.1f, 1000.0f);
 		shadowMapMat = shadowView * shadowProj*SHADOW_BIAS;
 
 		workmat = rotemat * objectPos * workmat;
@@ -778,6 +783,8 @@ void CPmx::TexLoad(ID3D11Device* device, LPSTR TexPass)
 	TextureNameW = NULL;
 	delete TextureNamePASSW;
 	TextureNamePASSW = NULL;
+
+	
 }
 
 vector<XMMATRIX> CPmx::updateVerBuf(XMMATRIX *world)
@@ -983,7 +990,7 @@ void ObjectIndividualData::ReflectionDataShadow(ID3D11DeviceContext* context, ID
 	UINT offset = 0;
 
 	context->IASetVertexBuffers(0, 1, &pVerBuffer, &stride, &offset);
-	context->IASetIndexBuffer(pIndBuffer, DXGI_FORMAT_D24_UNORM_S8_UINT, 0);
+	context->IASetIndexBuffer(pIndBuffer, DXGI_FORMAT_R16_UINT, 0);
 	context->IASetInputLayout(pVertexLayout);
 	context->VSSetShader(pVertexShader, NULL, 0);
 	context->PSSetShader(pPixelShader, NULL, 0);
